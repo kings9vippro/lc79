@@ -3,29 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>HELIX // HỆ THỐNG DỰ ĐOÁN TÀI XỈU THỰC CHIẾN</title>
+<title>HELIX </title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --nen-chinh:#06080f;
-  --the-chinh:#0c111d;
-  --vien-the:#1a2338;
-  --diem-nhan:#2563eb;
+  --nen-sau:#040711;
+  --the-chinh:#090f1d;
+  --vien-the:#162238;
+  --diem-nhan:#3b82f6;
+  --diem-nhan-sang:rgba(59,130,246,0.3);
   --tai:#10b981;
-  --tai-sang:rgba(16,185,129,0.25);
+  --tai-sang:rgba(16,185,129,0.35);
   --xiu:#f43f5e;
-  --xiu-sang:rgba(244,63,94,0.25);
+  --xiu-sang:rgba(244,63,94,0.35);
   --chu-chinh:#f8fafc;
-  --chu-phu:#8492a6;
+  --chu-phu:#8292ab;
   --canh-bao:#f59e0b;
 }
 
 html,body{
   touch-action:manipulation;
-  background-color:var(--nen-chinh);
+  background-color:var(--nen-sau);
   color:var(--chu-chinh);
   font-family:'Plus Jakarta Sans',sans-serif;
   min-height:100vh;
@@ -35,82 +36,113 @@ html,body{
 .mono{font-family:'JetBrains Mono',monospace}
 
 .khung-chinh{
-  max-width:1200px;
+  max-width:1280px;
   margin:0 auto;
   padding:16px;
 }
 
 header{
+  background:rgba(9,15,29,0.75);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--vien-the);
+  border-radius:16px;
+  padding:16px 20px;
+  margin-bottom:18px;
   display:flex;
   justify-content:space-between;
   align-items:center;
   flex-wrap:wrap;
-  gap:12px;
-  padding-bottom:14px;
-  border-bottom:1px solid var(--vien-the);
-  margin-bottom:18px;
+  gap:16px;
 }
 
 .thuong-hieu{
   display:flex;
-  flex-direction:column;
-  gap:3px;
+  align-items:center;
+  gap:14px;
 }
 
-.thuong-hieu-hang{
+.khung-logo{
+  width:46px;
+  height:46px;
+  border-radius:10px;
+  background:#0e172a;
+  border:1px solid var(--vien-the);
   display:flex;
   align-items:center;
-  gap:10px;
+  justify-content:center;
+  overflow:hidden;
+  box-shadow:0 0 15px rgba(59,130,246,0.2);
+  flex-shrink:0;
 }
 
-.cham-logo{
-  width:10px;
-  height:10px;
+.khung-logo img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:none;
+}
+
+.logo-mac-dinh{
+  width:18px;
+  height:18px;
   background:var(--diem-nhan);
-  border-radius:2px;
-  box-shadow:0 0 10px var(--diem-nhan);
+  border-radius:3px;
+  box-shadow:0 0 12px var(--diem-nhan);
 }
 
-.thuong-hieu h1{
-  font-size:1.25rem;
+.thong-tin-thuong-hieu h1{
+  font-size:1.35rem;
   letter-spacing:0.04em;
   font-weight:800;
+  line-height:1.1;
   text-transform:uppercase;
 }
 
 .chu-ky-dev{
   font-size:0.75rem;
-  font-weight:600;
+  font-weight:700;
   color:#38bdf8;
   letter-spacing:0.02em;
 }
 
-.khung-nhap-key{
+.thanh-cong-cu{
   display:flex;
+  flex-wrap:wrap;
   align-items:center;
-  gap:8px;
-  width:100%;
-  max-width:360px;
+  gap:10px;
+  flex:1;
+  justify-content:flex-end;
 }
 
-.khung-nhap-key input{
-  background:#090d16;
+.hop-nhap{
+  background:#060a14;
   border:1px solid var(--vien-the);
   border-radius:8px;
   padding:10px 14px;
   color:var(--chu-chinh);
   font-size:16px;
   outline:none;
-  flex:1;
-  transition:border-color 0.2s;
+  transition:all 0.2s;
 }
 
-.khung-nhap-key input:focus{
+.hop-nhap:focus{
   border-color:var(--diem-nhan);
+  box-shadow:0 0 10px rgba(59,130,246,0.25);
+}
+
+.hop-nhap-logo{
+  min-width:210px;
+  flex:1;
+  max-width:320px;
+}
+
+.hop-nhap-key{
+  width:160px;
 }
 
 .nut-bam{
-  background:var(--diem-nhan);
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
   color:#fff;
   border:none;
   padding:10px 20px;
@@ -119,16 +151,18 @@ header{
   font-size:0.85rem;
   cursor:pointer;
   user-select:none;
+  box-shadow:0 4px 15px rgba(37,99,235,0.3);
+  transition:all 0.2s;
 }
 
-.nut-bam:active{transform:scale(0.98)}
+.nut-bam:active{transform:scale(0.97)}
 
 .hop-bao-loi{
   background:rgba(244,63,94,0.1);
   border:1px solid rgba(244,63,94,0.3);
   color:var(--xiu);
-  padding:12px;
-  border-radius:8px;
+  padding:12px 16px;
+  border-radius:10px;
   margin-bottom:16px;
   font-size:0.85rem;
   display:none;
@@ -136,18 +170,19 @@ header{
 
 .luoi-giao-dien{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-  gap:16px;
+  grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
+  gap:18px;
 }
 
 .the-chua{
   background:var(--the-chinh);
   border:1px solid var(--vien-the);
-  border-radius:12px;
-  padding:16px;
+  border-radius:16px;
+  padding:18px;
   display:flex;
   flex-direction:column;
-  gap:14px;
+  gap:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.4);
 }
 
 .dau-the{
@@ -157,29 +192,32 @@ header{
 }
 
 .dau-the h2{
-  font-size:0.95rem;
-  font-weight:700;
+  font-size:1rem;
+  font-weight:800;
+  letter-spacing:0.02em;
 }
 
 .nhan-thuat-toan{
   font-size:0.7rem;
-  background:#131a2b;
-  border:1px solid #1f2d4a;
-  color:var(--chu-phu);
-  padding:3px 8px;
-  border-radius:4px;
+  background:#101a2e;
+  border:1px solid #1e3156;
+  color:#93c5fd;
+  padding:4px 10px;
+  border-radius:6px;
+  font-weight:700;
 }
 
 .hop-ket-qua-chinh{
-  background:linear-gradient(180deg,#060912 0%,#090e1a 100%);
-  border:1px solid #141d30;
-  border-radius:10px;
-  padding:22px 12px;
+  background:linear-gradient(180deg,#060913 0%,#0a1021 100%);
+  border:1px solid #16243d;
+  border-radius:14px;
+  padding:24px 14px;
   text-align:center;
+  position:relative;
 }
 
 .chu-du-doan{
-  font-size:3.2rem;
+  font-size:3.5rem;
   font-weight:800;
   line-height:1;
   text-transform:uppercase;
@@ -188,32 +226,32 @@ header{
 
 .chu-du-doan.tai{
   color:var(--tai);
-  filter:drop-shadow(0 0 16px var(--tai-sang));
+  filter:drop-shadow(0 0 18px var(--tai-sang));
 }
 
 .chu-du-doan.xiu{
   color:var(--xiu);
-  filter:drop-shadow(0 0 16px var(--xiu-sang));
+  filter:drop-shadow(0 0 18px var(--xiu-sang));
 }
 
 .thong-tin-phu{
   display:flex;
   justify-content:center;
   align-items:center;
-  gap:12px;
-  margin-top:12px;
-  font-size:0.8rem;
+  gap:14px;
+  margin-top:14px;
+  font-size:0.85rem;
   color:var(--chu-phu);
 }
 
 .the-canh-bao{
   font-size:0.65rem;
-  font-weight:700;
-  padding:2px 6px;
-  border-radius:3px;
+  font-weight:800;
+  padding:3px 8px;
+  border-radius:4px;
   background:#261805;
   color:var(--canh-bao);
-  border:1px solid #4a300a;
+  border:1px solid #57390c;
 }
 
 .luoi-thong-so{
@@ -223,10 +261,10 @@ header{
 }
 
 .o-thong-so{
-  background:#060912;
-  border:1px solid #131a29;
-  border-radius:6px;
-  padding:8px 4px;
+  background:#060a14;
+  border:1px solid #121c2e;
+  border-radius:8px;
+  padding:10px 4px;
   text-align:center;
 }
 
@@ -234,59 +272,60 @@ header{
   font-size:0.65rem;
   color:var(--chu-phu);
   text-transform:uppercase;
+  font-weight:700;
 }
 
 .o-thong-so .gia-tri{
-  font-size:0.85rem;
-  font-weight:700;
-  margin-top:2px;
+  font-size:0.9rem;
+  font-weight:800;
+  margin-top:3px;
 }
 
 .tieu-de-khu-vuc{
   font-size:0.75rem;
-  font-weight:700;
+  font-weight:800;
   color:var(--chu-phu);
   text-transform:uppercase;
   letter-spacing:0.04em;
   display:flex;
   justify-content:space-between;
-  margin-bottom:6px;
+  margin-bottom:8px;
 }
 
 .danh-sach-cuon{
   max-height:160px;
   overflow-y:auto;
-  border:1px solid #131a29;
-  border-radius:6px;
-  background:#060912;
+  border:1px solid #121c2e;
+  border-radius:8px;
+  background:#060a14;
   padding:4px 0;
 }
 
 .danh-sach-cuon::-webkit-scrollbar{width:4px}
-.danh-sach-cuon::-webkit-scrollbar-thumb{background:#1b253b;border-radius:2px}
+.danh-sach-cuon::-webkit-scrollbar-thumb{background:#1e2d47;border-radius:2px}
 
 .hang-du-lieu{
   display:flex;
   align-items:center;
-  padding:6px 10px;
+  padding:7px 10px;
   font-size:0.75rem;
-  border-bottom:1px solid #0d1322;
+  border-bottom:1px solid #0d1424;
 }
 
 .hang-du-lieu:last-child{border-bottom:none}
 
 .cham-trang-thai{
-  width:6px;
-  height:6px;
+  width:7px;
+  height:7px;
   border-radius:50%;
   margin-right:8px;
   flex-shrink:0;
 }
-.cham-trang-thai.T{background:var(--tai);box-shadow:0 0 6px var(--tai)}
-.cham-trang-thai.X{background:var(--xiu);box-shadow:0 0 6px var(--xiu)}
+.cham-trang-thai.T{background:var(--tai);box-shadow:0 0 8px var(--tai)}
+.cham-trang-thai.X{background:var(--xiu);box-shadow:0 0 8px var(--xiu)}
 
-.nhan-dung{color:var(--tai);font-weight:700;margin-right:8px}
-.nhan-sai{color:var(--xiu);font-weight:700;margin-right:8px}
+.nhan-dung{color:var(--tai);font-weight:800;margin-right:8px}
+.nhan-sai{color:var(--xiu);font-weight:800;margin-right:8px}
 
 footer{
   margin-top:24px;
@@ -302,14 +341,18 @@ footer{
 <div class="khung-chinh">
   <header>
     <div class="thuong-hieu">
-      <div class="thuong-hieu-hang">
-        <div class="cham-logo"></div>
-        <h1>HELIX</h1>
+      <div class="khung-logo" id="box-logo">
+        <div class="logo-mac-dinh" id="logo-default"></div>
+        <img id="logo-img" alt="Logo">
       </div>
-      <span class="chu-ky-dev">Phát hành bởi: Dev Anh Khôi</span>
+      <div class="thong-tin-thuong-hieu">
+        <h1>HELIX</h1>
+        <span class="chu-ky-dev">Phát hành bởi: Dev Anh Khôi</span>
+      </div>
     </div>
-    <div class="khung-nhap-key">
-      <input type="password" id="key" class="mono" placeholder="Nhập mã truy cập..." autocomplete="off">
+    <div class="thanh-cong-cu">
+      <input type="text" id="logo-base64" class="hop-nhap hop-nhap-logo mono" placeholder="Dán mã Base64 Logo tại đây..." autocomplete="off">
+      <input type="password" id="key" class="hop-nhap hop-nhap-key mono" placeholder="Nhập Key..." autocomplete="off">
       <button class="nut-bam" id="btn-ketnoi">KẾT NỐI</button>
     </div>
   </header>
@@ -317,7 +360,7 @@ footer{
   <div id="hop-loi" class="hop-bao-loi"></div>
 
   <div class="luoi-giao-dien" id="khu-vuc-lam-viec" style="display:none">
-    <!-- BẢNG TÀI XỈU HŨ -->
+    <!-- PANEL HŨ -->
     <div class="the-chua" id="the-hu">
       <div class="dau-the">
         <h2>TÀI XỈU TRUYỀN THỐNG</h2>
@@ -347,7 +390,7 @@ footer{
       </div>
     </div>
 
-    <!-- BẢNG TÀI XỈU MD5 -->
+    <!-- PANEL MD5 -->
     <div class="the-chua" id="the-md5">
       <div class="dau-the">
         <h2>TÀI XỈU MD5</h2>
@@ -384,10 +427,47 @@ footer{
 <script>
 const $ = id => document.getElementById(id);
 let keyHienTai = localStorage.getItem("helix_key") || "";
+let logoHienTai = localStorage.getItem("helix_logo_base64") || "";
 let boDemThoiGian = null;
+
+// --- XỬ LÝ LOGO BASE64 LƯU TRỮ TỨC THÌ ---
+function apDungLogo(chuoiBase64) {
+  const imgEl = $("logo-img");
+  const defEl = $("logo-default");
+  if (!chuoiBase64 || !chuoiBase64.trim()) {
+    imgEl.style.display = "none";
+    defEl.style.display = "block";
+    return;
+  }
+  let src = chuoiBase64.trim();
+  if (!src.startsWith("data:image")) {
+    src = "data:image/png;base64," + src;
+  }
+  imgEl.src = src;
+  imgEl.onload = () => {
+    imgEl.style.display = "block";
+    defEl.style.display = "none";
+  };
+  imgEl.onerror = () => {
+    imgEl.style.display = "none";
+    defEl.style.display = "block";
+  };
+}
+
+if (logoHienTai) {
+  $("logo-base64").value = logoHienTai;
+  apDungLogo(logoHienTai);
+}
+
+$("logo-base64").addEventListener("input", (e) => {
+  const val = e.target.value.trim();
+  localStorage.setItem("helix_logo_base64", val);
+  apDungLogo(val);
+});
 
 if (keyHienTai) $("key").value = keyHienTai;
 
+// --- HIỂN THỊ DỮ LIỆU LÊN GIAO DIỆN ---
 function hienThiDuLieu(kenh, duLieu) {
   if (!duLieu) return;
   const p = duLieu.prediction;
@@ -439,6 +519,17 @@ function hienThiDuLieu(kenh, duLieu) {
   `).join("") || "";
 }
 
+// --- KHÔI PHỤC DỮ LIỆU TỨC THÌ KHI TẢI LẠI TRANG (ZERO DATA LOSS) ---
+const cacheData = localStorage.getItem("helix_cache_dashboard");
+if (cacheData) {
+  try {
+    const parsed = JSON.parse(cacheData);
+    $("khu-vuc-lam-viec").style.display = "grid";
+    hienThiDuLieu("hu", parsed.hu);
+    hienThiDuLieu("md5", parsed.md5);
+  } catch {}
+}
+
 async function dongBo() {
   keyHienTai = $("key").value.trim();
   const hopLoi = $("hop-loi");
@@ -456,17 +547,22 @@ async function dongBo() {
     if (!res.ok) {
       hopLoi.textContent = data.error || "Kết nối thất bại. Mã bản quyền không hợp lệ.";
       hopLoi.style.display = "block";
-      $("khu-vuc-lam-viec").style.display = "none";
+      if (!cacheData) $("khu-vuc-lam-viec").style.display = "none";
       return;
     }
 
     hopLoi.style.display = "none";
     $("khu-vuc-lam-viec").style.display = "grid";
+    
+    // Lưu ngay vào cache của trình duyệt
+    localStorage.setItem("helix_cache_dashboard", JSON.stringify(data));
     hienThiDuLieu("hu", data.hu);
     hienThiDuLieu("md5", data.md5);
   } catch (e) {
-    hopLoi.textContent = "Không thể kết nối đến máy chủ. Đang thử lại...";
-    hopLoi.style.display = "block";
+    if (!cacheData) {
+      hopLoi.textContent = "Đang kết nối lại máy chủ...";
+      hopLoi.style.display = "block";
+    }
   }
 }
 
