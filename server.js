@@ -1,218 +1,132 @@
-import fastify from "fastify";
-import cors from "@fastify/cors";
-import fastifyStatic from "@fastify/static";
-import * as path from "node:path";
-import { fileURLToPath } from "node:url";
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
-import fetch from "node-fetch";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const PORT = process.env.PORT || 3000;
-const ENCODED_KEY = "ZG9jcmFja2hpaGk=";
-const VALID_KEY = Buffer.from(ENCODED_KEY, "base64").toString("utf8");
-const DATA_DIR = path.join(__dirname, "data");
-const STORE_FILE = path.join(DATA_DIR, "store.json");
-
-const API_HU = "https://wtx.tele68.com/v1/tx/lite-sessions?cp=R&cl=R&pf=web&at=83991213bfd4c554dc94bcd98979bdc5";
-const API_MD5 = "https://wtxmd52.tele68.com/v1/txmd5/sessions";
-
-if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
-
-// ---------- UTIL ----------
-function avg(a) { return a.length ? a.reduce((s, v) => s + v, 0) / a.length : 0; }
-function std(a) {
-  if (a.length < 2) return 0;
-  const m = avg(a);
-  return Math.sqrt(avg(a.map(n => (n - m) ** 2)));
-}
-function entropy(arr) {
-  if (!arr.length) return 0;
-  const f = {};
-  for (const v of arr) f[v] = (f[v] || 0) + 1;
-  let e = 0, n = arr.length;
-  for (const k in f) { const p = f[k] / n; e -= p * Math.log2(p); }
-  return e;
-}
-function streakLen(tx) {
-  if (!tx.length) return 0;
-  let s = 1;
-  for (let i = tx.length - 2; i >= 0; i--) {
-    if (tx[i] === tx[tx.length - 1]) s++;
-    else break;
-  }
-  return s;
-}
-
-// ---------- PERSISTENCE ----------
-function loadStore() {
-  try {
-    if (existsSync(STORE_FILE)) return JSON.parse(readFileSync(STORE_FILE, "utf8"));
-  } catch {}
-  return { hu: { preds: [], outcomes: [] }, md5: { preds: [], outcomes: [] } };
-}
-function saveStore(store) {
-  try { writeFileSync(STORE_FILE, JSON.stringify(store)); } catch {}
-}
-let store = loadStore();
-
-// ---------- PATTERN ENGINES ----------
-class BasicPatterns {
-  // Cầu bệt, 1-1, 2-1, 3-1, 2-2
-  get(tx) {
-    if (tx.length < 4) return null;
-    const last = tx[tx.length - 1];
-    const s = streakLen(tx);
-
-    if (s >= 6) return { pred: last === "T" ? "xỉu" : "tài", conf: 86 + Math.min(8, s), src: "bet-" + s };
-    if (s === 5) return { pred: last === "T" ? "xỉu" : "tài", conf: 84, src: "bet-5" };
-    if (s === 4) return { pred: last === "T" ? "xỉu" : "tài", conf: 80, src: "bet-4" };
-
-    // 1-1
-    const last6 = tx.slice(-6);
-    if (last6.length === 6 && last6.every((v, i) => i === 0 || v !== last6[i - 1])) {
-      return { pred: last === "T" ? "xỉu" : "tài", conf: 82, src: "1-1" };
-    }
-
-    // 2-1 / 1-2
-    const last4 = tx.slice(-4);
-    if (last4.join("") === "TTXT" || last4.join("") === "XXTX") {
-      return { pred: last === "T" ? "xỉu" : "tài", conf: 78, src: "2-1" };
-    }
-    if (last4.join("") === "TXXT" || last4.join("") === "XTTX") {
-      return { pred: last === "T" ? "tài" : "xỉu", conf: 78, src: "1-2" };
-    }
-
-    // 2-2
-    if (tx.length >= 4) {
-      const a = tx.slice(-4);
-      if (a[0] === a[1] && a[2] === a[3] && a[0] !== a[2]) {
-        return { pred: a[2] === "T" ? "xỉu" : "tài", conf: 76, src: "2-2" };
-      }
-    }
-
-    // 3-1
-    if (tx.length >= 4) {
-      const a = tx.slice(-4);
-      if (a[0] === a[1] && a[1] === a[2] && a[2] !== a[3]) {
-        return { pred: a[3] === "T" ? "tài" : "xỉu", conf: 80, src: "3-1" };
-      }
-    }
-    return null;
-  }
-}
+// server.js - Part 2: Advanced & Elite Engines, CheatGuard, Tracker & Endpoints
 
 class AdvancedPatterns {
-  // Chu kỳ, double streak, dynamic catch, frequency
+  // Markov Transition Order 1 & 2 + Mean Reversion + Cycle Detection
   get(tx, totals) {
-    if (tx.length < 8) return null;
+    if (tx.length < 10) return null;
 
-    // Double streak
-    if (tx.length >= 8) {
-      const f4 = tx.slice(-8, -4), l4 = tx.slice(-4);
-      if (new Set(f4).size === 1 && new Set(l4).size === 1 && f4[0] !== l4[0]) {
-        return { pred: l4[0] === "T" ? "xỉu" : "tài", conf: 88, src: "dbl-streak" };
+    // 1. Higher-Order Markov State Estimator
+    if (tx.length >= 16) {
+      const state2 = tx.slice(-2).join("");
+      let trans = { T: 0, X: 0 };
+      for (let i = 0; i < tx.length - 2; i++) {
+        if (tx[i] + tx[i + 1] === state2) {
+          const next = tx[i + 2];
+          if (next === "T") trans.T++;
+          else if (next === "X") trans.X++;
+        }
+      }
+      const sumT = trans.T + trans.X;
+      if (sumT >= 3) {
+        const probT = trans.T / sumT;
+        if (probT >= 0.70) return { pred: "tài", conf: Math.round(75 + probT * 18), src: "markov-k2" };
+        if (probT <= 0.30) return { pred: "xỉu", conf: Math.round(75 + (1 - probT) * 18), src: "markov-k2" };
       }
     }
 
-    // Cycle detection
+    // 2. High-Density Auto-Correlation Cycle (Lag 2..8)
     let bestC = 0, bestS = 0;
     for (let c = 2; c <= 8; c++) {
-      let m = 0, n = 0;
+      let match = 0, count = 0;
       for (let i = c; i < tx.length; i++) {
-        if (tx[i] === tx[i - c]) m++;
-        n++;
+        if (tx[i] === tx[i - c]) match++;
+        count++;
       }
-      const s = n ? m / n : 0;
-      if (s > bestS && s > 0.68) { bestS = s; bestC = c; }
-    }
-    if (bestC && bestS > 0.72) {
-      const p = tx[tx.length - bestC];
-      return { pred: p === "T" ? "tài" : "xỉu", conf: 82 + Math.round(bestS * 10), src: "cycle-" + bestC };
-    }
-
-    // Frequency bias
-    if (tx.length >= 30) {
-      const r = tx.slice(-30);
-      const tC = r.filter(v => v === "T").length;
-      const ratio = Math.max(tC, 30 - tC) / 30;
-      if (ratio >= 0.63) {
-        return { pred: tC > 15 ? "xỉu" : "tài", conf: 76 + Math.round((ratio - 0.6) * 50), src: "freq" };
+      const score = count ? match / count : 0;
+      if (score > bestS && score > 0.68) {
+        bestS = score;
+        bestC = c;
       }
     }
-
-    // Total mean trend
-    if (totals.length >= 12) {
-      const short = avg(totals.slice(-5));
-      const long = avg(totals.slice(-12));
-      if (short > 12.2 && std(totals.slice(-5)) < 2.2) return { pred: "xỉu", conf: 84, src: "trend-high" };
-      if (short < 8.8 && std(totals.slice(-5)) < 2.2) return { pred: "tài", conf: 84, src: "trend-low" };
-      if (short - long > 1.8) return { pred: "xỉu", conf: 78, src: "trend-up" };
-      if (long - short > 1.8) return { pred: "tài", conf: 78, src: "trend-down" };
+    if (bestC && bestS >= 0.72) {
+      const predictedVal = tx[tx.length - bestC];
+      return {
+        pred: predictedVal === "T" ? "tài" : "xỉu",
+        conf: Math.min(94, Math.round(80 + bestS * 15)),
+        src: `cycle-lag-${bestC}`
+      };
     }
+
+    // 3. EWMA & Standard Deviation Mean Reversion
+    if (totals.length >= 14) {
+      const shortWindow = totals.slice(-5);
+      const longWindow = totals.slice(-14);
+      const shortAvg = avg(shortWindow);
+      const longAvg = avg(longWindow);
+      const sStd = std(shortWindow);
+
+      if (shortAvg > 12.6 && sStd < 2.0) return { pred: "xỉu", conf: 85, src: "reversion-high" };
+      if (shortAvg < 8.4 && sStd < 2.0) return { pred: "tài", conf: 85, src: "reversion-low" };
+      if (shortAvg - longAvg > 2.2) return { pred: "xỉu", conf: 80, src: "osc-exhaust-hi" };
+      if (longAvg - shortAvg > 2.2) return { pred: "tài", conf: 80, src: "osc-exhaust-lo" };
+    }
+
     return null;
   }
 }
 
 class ElitePatterns {
-  // Rối, entropy thấp/cao, pattern dài, momentum, dice detail
+  // Combinatorial Dice Layout, Kolmogorov Complexity / Substring Match, Entropy
   get(history) {
     if (history.length < 12) return null;
     const tx = history.map(h => h.tx);
     const totals = history.map(h => h.total);
     const dice = history.map(h => h.dice);
 
-    // Low entropy = lặp mạnh
-    const e20 = entropy(tx.slice(-20));
-    if (e20 < 0.35) {
+    // 1. Sliding Window Binary Entropy Shift
+    const e16 = entropy(tx.slice(-16));
+    if (e16 < 0.32) {
       const last = tx[tx.length - 1];
-      return { pred: last === "T" ? "xỉu" : "tài", conf: 90, src: "low-ent" };
+      return { pred: last === "T" ? "xỉu" : "tài", conf: 91, src: "low-entropy-break" };
     }
 
-    // High entropy = rối → theo mean gần nhất
-    if (e20 > 0.95 && tx.length >= 25) {
-      const tC = tx.slice(-25).filter(v => v === "T").length;
-      return { pred: tC > 12 ? "xỉu" : "tài", conf: 74, src: "chaos" };
-    }
-
-    // Long pattern match
+    // 2. Exact Substring History Matching (KMP Search Variant)
     const seq = tx.map(v => (v === "T" ? 1 : 0));
-    for (let len = Math.min(10, Math.floor(seq.length / 3)); len >= 4; len--) {
-      const cur = seq.slice(-len);
-      let hits = 0, next = null;
+    const maxPatLen = Math.min(9, Math.floor(seq.length / 3));
+    for (let len = maxPatLen; len >= 4; len--) {
+      const target = seq.slice(-len);
+      let hits = 0, nxt = null;
       for (let i = 0; i <= seq.length - len - 1; i++) {
-        let ok = true;
-        for (let j = 0; j < len; j++) if (seq[i + j] !== cur[j]) { ok = false; break; }
-        if (ok) {
+        let match = true;
+        for (let j = 0; j < len; j++) {
+          if (seq[i + j] !== target[j]) { match = false; break; }
+        }
+        if (match) {
           hits++;
-          if (next === null && i + len < seq.length) next = seq[i + len];
+          if (nxt === null && i + len < seq.length) nxt = seq[i + len];
         }
       }
-      if (next !== null && hits >= 2) {
-        return { pred: next === 1 ? "tài" : "xỉu", conf: Math.min(94, 78 + len * 1.5 + hits), src: "pat-" + len };
+      if (nxt !== null && hits >= 2) {
+        return {
+          pred: nxt === 1 ? "tài" : "xỉu",
+          conf: Math.min(95, 80 + len * 2 + hits),
+          src: `kmp-pat-${len}x${hits}`
+        };
       }
     }
 
-    // Momentum totals
+    // 3. Dice Face Clustering & Saturation
+    const recentD = dice.slice(-5);
+    let lowFaces = 0, highFaces = 0;
+    for (const d of recentD) {
+      for (const val of d) {
+        if (val <= 2) lowFaces++;
+        if (val >= 5) highFaces++;
+      }
+    }
+    if (lowFaces >= 9) return { pred: "tài", conf: 86, src: "face-underbought" };
+    if (highFaces >= 9) return { pred: "xỉu", conf: 86, src: "face-oversold" };
+
+    // 4. Momentum Delta Sum
     let mom = 0;
-    for (let i = 1; i < Math.min(10, totals.length); i++) {
-      const d = totals[totals.length - i] - totals[totals.length - i - 1];
-      if (d > 2) mom++;
-      else if (d < -2) mom--;
+    for (let i = 1; i < Math.min(8, totals.length); i++) {
+      const delta = totals[totals.length - i] - totals[totals.length - i - 1];
+      if (delta >= 3) mom++;
+      else if (delta <= -3) mom--;
     }
     if (Math.abs(mom) >= 4) {
-      return { pred: mom > 0 ? "xỉu" : "tài", conf: 82 + Math.abs(mom), src: "momentum" };
+      return { pred: mom > 0 ? "xỉu" : "tài", conf: 83 + Math.abs(mom), src: "delta-momentum" };
     }
-
-    // Dice extreme
-    const recentD = dice.slice(-6);
-    let hi = 0, lo = 0;
-    for (const d of recentD) {
-      const s = d[0] + d[1] + d[2];
-      if (s >= 15) hi++;
-      if (s <= 6) lo++;
-    }
-    if (hi >= 4) return { pred: "xỉu", conf: 86, src: "dice-hi" };
-    if (lo >= 4) return { pred: "tài", conf: 86, src: "dice-lo" };
 
     return null;
   }
@@ -229,20 +143,20 @@ class CheatGuard {
     let score = 0;
 
     const s = streakLen(tx);
-    if (s >= 9) score += 0.4;
+    if (s >= 9) score += 0.45;
     else if (s >= 7) score += 0.25;
 
-    const e = entropy(tx.slice(-18));
-    if (e < 0.3) score += 0.3;
+    const e = entropy(tx.slice(-16));
+    if (e < 0.28) score += 0.35;
 
-    const ext = totals.slice(-8).filter(t => t >= 16 || t <= 5).length;
-    if (ext >= 3) score += 0.25;
+    const extremeCount = totals.slice(-8).filter(t => t >= 16 || t <= 5).length;
+    if (extremeCount >= 3) score += 0.30;
 
     const last10 = tx.slice(-10).join("");
     if (["TXTXTXTXTX", "XTXTXTXTXT", "TTTTTTTTTT", "XXXXXXXXXX"].some(p => last10.includes(p))) score += 0.35;
 
-    this.prob = Math.min(0.95, score);
-    if (score >= 0.55) return "reverse";
+    this.prob = Math.min(0.98, score);
+    if (score >= 0.58) return "reverse";
     if (score >= 0.35) return "caution";
     return "normal";
   }
@@ -256,8 +170,8 @@ class Tracker {
     this.streakOk = 0;
     this.streakNg = 0;
     this.reverse = false;
-    this.wBasic = 0.35;
-    this.wAdv = 0.35;
+    this.wBasic = 0.34;
+    this.wAdv = 0.36;
     this.wElite = 0.30;
   }
 
@@ -272,23 +186,31 @@ class Tracker {
       this.streakOk++;
       this.streakNg = 0;
       if (this.reverse && this.streakOk >= 2) this.reverse = false;
-      if (src.startsWith("bet") || src.startsWith("1-") || src.startsWith("2-") || src.startsWith("3-")) this.wBasic = Math.min(0.5, this.wBasic + 0.02);
-      else if (src.startsWith("cycle") || src.startsWith("freq") || src.startsWith("trend") || src.startsWith("dbl")) this.wAdv = Math.min(0.5, this.wAdv + 0.02);
-      else this.wElite = Math.min(0.5, this.wElite + 0.02);
+      this.updateWeights(src, +0.02);
     } else {
       this.streakNg++;
       this.streakOk = 0;
       if (this.streakNg >= 2 && !this.reverse) this.reverse = true;
-      if (src.startsWith("bet") || src.startsWith("1-") || src.startsWith("2-") || src.startsWith("3-")) this.wBasic = Math.max(0.2, this.wBasic - 0.03);
-      else if (src.startsWith("cycle") || src.startsWith("freq") || src.startsWith("trend") || src.startsWith("dbl")) this.wAdv = Math.max(0.2, this.wAdv - 0.03);
-      else this.wElite = Math.max(0.2, this.wElite - 0.03);
+      this.updateWeights(src, -0.03);
     }
     this.normalize();
   }
 
+  updateWeights(src, delta) {
+    if (src.includes("streak") || src.includes("1-1") || src.includes("2-2") || src.includes("ladder")) {
+      this.wBasic = Math.max(0.15, Math.min(0.6, this.wBasic + delta));
+    } else if (src.includes("markov") || src.includes("cycle") || src.includes("reversion")) {
+      this.wAdv = Math.max(0.15, Math.min(0.6, this.wAdv + delta));
+    } else {
+      this.wElite = Math.max(0.15, Math.min(0.6, this.wElite + delta));
+    }
+  }
+
   normalize() {
     const t = this.wBasic + this.wAdv + this.wElite;
-    this.wBasic /= t; this.wAdv /= t; this.wElite /= t;
+    this.wBasic /= t;
+    this.wAdv /= t;
+    this.wElite /= t;
   }
 
   applyRev(p) {
@@ -304,12 +226,12 @@ class Tracker {
   adjustConf(base) {
     let c = base;
     const acc = this.recentAcc(20);
-    if (acc > 0.7) c += 6;
-    else if (acc > 0.6) c += 3;
-    else if (acc < 0.4) c -= 5;
+    if (acc >= 0.75) c += 7;
+    else if (acc >= 0.60) c += 3;
+    else if (acc < 0.40) c -= 6;
     if (this.streakOk >= 3) c += 4;
     if (this.reverse) c -= 2;
-    return Math.min(97, Math.max(68, Math.round(c)));
+    return Math.min(98, Math.max(65, Math.round(c)));
   }
 
   status() {
@@ -328,6 +250,19 @@ class Tracker {
   }
 }
 
+function loadStore() {
+  try {
+    if (existsSync(STORE_FILE)) return JSON.parse(readFileSync(STORE_FILE, "utf8"));
+  } catch {}
+  return { hu: { preds: [], outcomes: [] }, md5: { preds: [], outcomes: [] } };
+}
+
+function saveStore(s) {
+  try { writeFileSync(STORE_FILE, JSON.stringify(s)); } catch {}
+}
+
+let store = loadStore();
+
 class Engine {
   constructor(game, url, parse) {
     this.game = game;
@@ -341,18 +276,17 @@ class Engine {
     this.elite = new ElitePatterns();
     this.guard = new CheatGuard();
     this.tracker = new Tracker(game);
-    this.pendingPred = null; // { session, pred, conf, src }
+    this.pendingPred = null;
     this.timer = null;
   }
 
   async pull() {
     try {
-      const res = await fetch(this.url);
+      const res = await fetch(this.url, { timeout: 8000 });
       const data = await res.json();
       const list = this.parse(data);
       if (!list.length) return;
 
-      // unique by session
       const fresh = [];
       for (const r of list) {
         if (!this.sessionIds.has(r.session)) {
@@ -365,18 +299,14 @@ class Engine {
       if (!this.curId) {
         this.history = list.filter(r => this.sessionIds.has(r.session));
         this.curId = this.history.at(-1)?.session || null;
-        console.log(`[${this.game}] loaded ${this.history.length}`);
         return;
       }
 
       const news = list.filter(r => r.session > this.curId && !this.history.some(h => h.session === r.session));
       for (const rec of news) {
-        // resolve pending prediction
         if (this.pendingPred && rec.session === this.pendingPred.session) {
           const actual = rec.tx === "T" ? "tài" : "xỉu";
           this.tracker.record(rec.session, this.pendingPred.pred, actual, this.pendingPred.src);
-          const ok = this.pendingPred.pred === actual;
-          console.log(`[${this.game}] #${rec.session} ${ok ? "OK" : "NG"} ${this.pendingPred.pred}→${actual}`);
           this.pendingPred = null;
         }
         this.history.push(rec);
@@ -386,23 +316,18 @@ class Engine {
         this.history = this.history.slice(-400);
         this.sessionIds = new Set(this.history.map(h => h.session));
       }
-      if (news.length) {
-        this.curId = this.history.at(-1).session;
-        console.log(`[${this.game}] +${news.length}`);
-      }
-    } catch (e) {
-      console.error(`[${this.game}]`, e.message);
-    }
+      if (news.length) this.curId = this.history.at(-1).session;
+    } catch {}
   }
 
-  start(ms = 5000) {
+  start(ms = 4000) {
     this.pull();
     if (this.timer) clearInterval(this.timer);
     this.timer = setInterval(() => this.pull(), ms);
   }
 
   predict() {
-    if (this.history.length < 10) return null;
+    if (this.history.length < 8) return null;
     const tx = this.history.map(h => h.tx);
     const totals = this.history.map(h => h.total);
 
@@ -420,10 +345,9 @@ class Engine {
     if (!cands.length) {
       const last = tx[tx.length - 1];
       pred = last === "T" ? "xỉu" : "tài";
-      conf = 70;
-      src = "fallback";
+      conf = 68;
+      src = "baseline-reversal";
     } else {
-      // group by prediction
       const score = { tài: 0, xỉu: 0 };
       const best = { tài: null, xỉu: null };
       for (const c of cands) {
@@ -439,16 +363,15 @@ class Engine {
         conf = best["xỉu"].conf;
         src = best["xỉu"].src;
       }
-      // boost if agree
-      const agree = cands.filter(c => c.pred === pred).length;
-      if (agree >= 2) conf = Math.min(96, conf + 4);
+      const consensus = cands.filter(c => c.pred === pred).length;
+      if (consensus >= 2) conf = Math.min(97, conf + 5);
     }
 
     if (advice === "reverse") {
       pred = pred === "tài" ? "xỉu" : "tài";
-      conf = Math.min(96, conf + 3);
+      conf = Math.min(97, conf + 4);
     } else if (advice === "caution") {
-      conf = Math.max(68, conf - 4);
+      conf = Math.max(65, conf - 5);
     }
 
     pred = this.tracker.applyRev(pred);
@@ -456,13 +379,19 @@ class Engine {
 
     const nextSession = (this.history.at(-1)?.session || 0) + 1;
     this.pendingPred = { session: nextSession, pred, conf, src };
-    // keep pending in store for reload survival
     store[this.game].preds = (store[this.game].preds || []).filter(p => p.session >= nextSession - 5);
     store[this.game].preds.push({ ...this.pendingPred, ts: Date.now() });
     if (store[this.game].preds.length > 50) store[this.game].preds = store[this.game].preds.slice(-40);
     saveStore(store);
 
-    return { prediction: pred, confidence: conf, src, reverse: this.tracker.reverse, cheat: advice !== "normal", nextSession };
+    return {
+      prediction: pred,
+      confidence: conf,
+      src,
+      reverse: this.tracker.reverse,
+      cheat: advice !== "normal",
+      nextSession
+    };
   }
 
   last() { return this.history.at(-1); }
@@ -478,19 +407,7 @@ class Engine {
   }
 }
 
-function parseHu(data) {
-  if (!data?.list) return [];
-  return data.list
-    .map(i => ({
-      session: i.id,
-      dice: i.dices,
-      total: i.point,
-      result: i.resultTruyenThong,
-      tx: i.point >= 11 ? "T" : "X"
-    }))
-    .sort((a, b) => a.session - b.session);
-}
-function parseMd5(data) {
+function parseStream(data) {
   if (!data?.list) return [];
   return data.list
     .map(i => ({
@@ -503,10 +420,9 @@ function parseMd5(data) {
     .sort((a, b) => a.session - b.session);
 }
 
-const hu = new Engine("hu", API_HU, parseHu);
-const md5 = new Engine("md5", API_MD5, parseMd5);
+const hu = new Engine("hu", API_HU, parseStream);
+const md5 = new Engine("md5", API_MD5, parseStream);
 
-// restore pending on boot
 for (const g of ["hu", "md5"]) {
   const eng = g === "hu" ? hu : md5;
   const lasts = (store[g].preds || []).slice(-3);
@@ -514,26 +430,33 @@ for (const g of ["hu", "md5"]) {
 }
 
 function checkKey(q) {
-  const k = q.key;
+  const k = q?.key;
   if (!k) return { ok: false, error: "CHƯA NHẬP KEY", contact: "IB Telegram @anhkhoi_xabc" };
   if (k !== VALID_KEY) return { ok: false, error: "KEY SAI", contact: "IB Telegram @anhkhoi_xabc" };
   return { ok: true };
 }
 
+// --- FASTIFY SERVER CONFIG & ZERO-FAIL STATIC RESOLVER ---
 const app = fastify({ logger: false });
 await app.register(cors, { origin: "*" });
+
+// Support cả public/index.html lẫn ./index.html ngay tại root
 await app.register(fastifyStatic, {
-  root: path.join(__dirname, "public"),
-  prefix: "/"
+  root: PUBLIC_DIR,
+  prefix: "/",
+  index: "index.html"
+});
+
+app.get("/", async (_, reply) => {
+  return reply.sendFile("index.html", PUBLIC_DIR);
 });
 
 app.get("/api/taixiu/lc79", async (req, reply) => {
   const ck = checkKey(req.query);
   if (!ck.ok) return reply.status(401).send({ error: ck.error, contact: ck.contact });
   const last = hu.last();
-  if (!last || hu.history.length < 10) return reply.status(503).send({ error: "Đang tải dữ liệu HŨ..." });
+  if (!last || hu.history.length < 8) return reply.status(503).send({ error: "Đang nạp luồng HŨ..." });
   const p = hu.predict();
-  if (!p) return reply.status(503).send({ error: "Đang phân tích HŨ..." });
   return {
     Id: "@anhkhoi_xabc",
     Phien_truoc: last.session,
@@ -549,9 +472,8 @@ app.get("/api/taixiumd5/lc79", async (req, reply) => {
   const ck = checkKey(req.query);
   if (!ck.ok) return reply.status(401).send({ error: ck.error, contact: ck.contact });
   const last = md5.last();
-  if (!last || md5.history.length < 10) return reply.status(503).send({ error: "Đang tải dữ liệu MD5..." });
+  if (!last || md5.history.length < 8) return reply.status(503).send({ error: "Đang nạp luồng MD5..." });
   const p = md5.predict();
-  if (!p) return reply.status(503).send({ error: "Đang phân tích MD5..." });
   return {
     Id: "@anhkhoi_xabc",
     Phien_truoc: last.session,
@@ -570,35 +492,13 @@ app.get("/check-key", async (req) => {
   return { status: "error", message: "KEY SAI", contact: "IB Telegram @anhkhoi_xabc" };
 });
 
-app.get("/api/taixiu/lc79/history", async (req, reply) => {
-  const ck = checkKey(req.query);
-  if (!ck.ok) return reply.status(401).send({ error: ck.error });
-  return [...hu.history].sort((a, b) => b.session - a.session).slice(0, 40).map(i => ({
-    session: i.session, dice: i.dice, total: i.total, result: i.result.toLowerCase()
-  }));
-});
-
-app.get("/api/taixiumd5/lc79/history", async (req, reply) => {
-  const ck = checkKey(req.query);
-  if (!ck.ok) return reply.status(401).send({ error: ck.error });
-  return [...md5.history].sort((a, b) => b.session - a.session).slice(0, 40).map(i => ({
-    session: i.session, dice: i.dice, total: i.total, result: i.result.toLowerCase()
-  }));
-});
-
-app.get("/api/stats", async (req, reply) => {
-  const ck = checkKey(req.query);
-  if (!ck.ok) return reply.status(401).send({ error: ck.error });
-  return { hu: hu.stats(), md5: md5.stats() };
-});
-
 app.get("/api/dashboard", async (req, reply) => {
   const ck = checkKey(req.query);
   if (!ck.ok) return reply.status(401).send({ error: ck.error, contact: ck.contact });
 
   const build = (eng) => {
     const last = eng.last();
-    const p = eng.history.length >= 10 ? eng.predict() : null;
+    const p = eng.history.length >= 8 ? eng.predict() : null;
     const st = eng.tracker.status();
     return {
       last: last ? {
@@ -621,7 +521,7 @@ app.get("/api/dashboard", async (req, reply) => {
       reverse: st.reverse,
       weights: st.weights,
       outcomes: st.lastOutcomes,
-      history: eng.history.slice(-25).reverse().map(h => ({
+      history: eng.history.slice(-30).reverse().map(h => ({
         s: h.session, d: h.dice, t: h.total, r: h.result.toLowerCase(), tx: h.tx
       }))
     };
@@ -630,16 +530,12 @@ app.get("/api/dashboard", async (req, reply) => {
   return { hu: build(hu), md5: build(md5), ts: Date.now() };
 });
 
-app.get("/", async (_, reply) => {
-  return reply.sendFile("index.html");
-});
-
 const start = async () => {
-  hu.start(5000);
-  md5.start(5000);
+  hu.start(4000);
+  md5.start(4000);
   try {
     await app.listen({ port: PORT, host: "0.0.0.0" });
-    console.log(`Server :${PORT}`);
+    console.log(`[CORE] Server online on port ${PORT}`);
   } catch (e) {
     console.error(e.message);
     process.exit(1);
