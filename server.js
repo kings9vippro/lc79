@@ -1,5 +1,15 @@
 // server.js - Part 2: Advanced & Elite Engines, CheatGuard, Tracker & Endpoints
 
+--- server.js
++++ server.js
+@@ -4,7 +4,6 @@
+ import * as path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+-import fetch from "node-fetch";
+
+ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+ const PORT = process.env.PORT || 3000;
 class AdvancedPatterns {
   // Markov Transition Order 1 & 2 + Mean Reversion + Cycle Detection
   get(tx, totals) {
