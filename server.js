@@ -1,3 +1,4 @@
+// server.js - ĐỘNG CƠ ĐỊNH LƯỢNG HELIX ARCHITECT 2026
 import fastify from "fastify";
 import cors from "@fastify/cors";
 import fastifyStatic from "@fastify/static";
@@ -20,7 +21,7 @@ if (!existsSync(DATA_DIR)) {
   } catch {}
 }
 
-// --- TIỆN ÍCH TOÁN HỌC & ENTROPY ---
+// --- TIỆN ÍCH TOÁN HỌC ĐỊNH LƯỢNG ---
 const avg = arr => (arr && arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : 0);
 
 const std = arr => {
@@ -51,76 +52,110 @@ const streakLen = tx => {
   return s;
 };
 
-// --- TẦNG 1: THUẬT TOÁN BẮT CẦU CƠ BẢN ---
+// --- QUẢN LÝ DỮ LIỆU ĐỒNG BỘ PERSISTENCE ---
+function loadStore() {
+  try {
+    if (existsSync(STORE_FILE)) {
+      const data = JSON.parse(readFileSync(STORE_FILE, "utf8"));
+      return {
+        hu: { activePred: data.hu?.activePred || null, outcomes: data.hu?.outcomes || [] },
+        md5: { activePred: data.md5?.activePred || null, outcomes: data.md5?.outcomes || [] }
+      };
+    }
+  } catch {}
+  return {
+    hu: { activePred: null, outcomes: [] },
+    md5: { activePred: null, outcomes: [] }
+  };
+}
+
+function saveStore(s) {
+  try {
+    writeFileSync(STORE_FILE, JSON.stringify(s, null, 2));
+  } catch {}
+}
+
+const store = loadStore();
+
+// --- TẦNG 1: THUẬT TOÁN BẮT CẦU CƠ BẢN (HÌNH THÁI DÒNG TIỀN) ---
 class BasicPatterns {
   get(tx) {
     if (!tx || tx.length < 4) return null;
     const last = tx[tx.length - 1];
     const s = streakLen(tx);
 
-    if (s >= 7) return { pred: last === "T" ? "xỉu" : "tài", conf: 89, src: `Bẻ bệt (${s} tay)` };
-    if (s >= 4 && s < 7) return { pred: last === "T" ? "tài" : "xỉu", conf: 84 + (s - 4) * 2, src: `Đu bệt (${s} tay)` };
+    // Cầu bệt & Bẻ bệt
+    if (s >= 8) return { pred: last === "T" ? "xỉu" : "tài", conf: 91, src: `Bẻ bệt sâu (${s} tay)` };
+    if (s >= 6) return { pred: last === "T" ? "xỉu" : "tài", conf: 87, src: `Bẻ bệt bão hòa (${s} tay)` };
+    if (s >= 3 && s < 6) return { pred: last === "T" ? "tài" : "xỉu", conf: 85 + (s - 3) * 2, src: `Theo đà bệt (${s} tay)` };
 
+    // Cầu đảo 1-1 (Ping-pong)
     const last6 = tx.slice(-6);
     if (last6.length === 6 && last6.every((v, i) => i === 0 || v !== last6[i - 1])) {
-      return { pred: last === "T" ? "xỉu" : "tài", conf: 86, src: "Cầu đảo 1-1" };
+      return { pred: last === "T" ? "xỉu" : "tài", conf: 88, src: "Bắt cầu đảo 1-1" };
     }
 
+    // Cầu đôi 2-2
     const last4 = tx.slice(-4);
     if (last4[0] === last4[1] && last4[2] === last4[3] && last4[0] !== last4[2]) {
-      return { pred: last4[3] === "T" ? "xỉu" : "tài", conf: 83, src: "Cầu đôi 2-2" };
+      return { pred: last4[3] === "T" ? "xỉu" : "tài", conf: 84, src: "Bắt cầu đôi 2-2" };
     }
 
+    // Cầu bậc thang 1-2-3 & 3-2-1
     const seq6 = tx.slice(-6).join("");
     if (seq6 === "TTTXXT" || seq6 === "XXXTTX") {
-      return { pred: last === "T" ? "tài" : "xỉu", conf: 85, src: "Cầu gãy 3-2-1" };
+      return { pred: last === "T" ? "tài" : "xỉu", conf: 86, src: "Khóa cầu lùi 3-2-1" };
     }
     if (seq6 === "TXXTTT" || seq6 === "XTTXXX") {
-      return { pred: last === "T" ? "xỉu" : "tài", conf: 85, src: "Cầu tiến 1-2-3" };
+      return { pred: last === "T" ? "xỉu" : "tài", conf: 86, src: "Khóa cầu tiến 1-2-3" };
     }
 
+    // Cầu kẹp đối xứng 2-1-2
     const last5 = tx.slice(-5).join("");
     if (last5 === "TTXTT" || last5 === "XXTXX") {
-      return { pred: last === "T" ? "xỉu" : "tài", conf: 82, src: "Cầu kẹp 2-1-2" };
+      return { pred: last === "T" ? "xỉu" : "tài", conf: 83, src: "Bắt cầu kẹp 2-1-2" };
     }
 
+    // Cầu nhịp 3-1 & 1-3
     const last4Seq = tx.slice(-4).join("");
     if (last4Seq === "TTTX" || last4Seq === "XXXT") {
-      return { pred: last === "T" ? "xỉu" : "tài", conf: 81, src: "Cầu nhịp 3-1" };
+      return { pred: last === "T" ? "xỉu" : "tài", conf: 82, src: "Bắt nhịp cầu 3-1" };
     }
     if (last4Seq === "TXXX" || last4Seq === "XTTT") {
-      return { pred: last === "T" ? "tài" : "xỉu", conf: 81, src: "Cầu nhịp 1-3" };
+      return { pred: last === "T" ? "tài" : "xỉu", conf: 82, src: "Bắt nhịp cầu 1-3" };
     }
 
     return null;
   }
 }
 
-// --- TẦNG 2: THUẬT TOÁN NÂNG CAO (MARKOV, CHU KỲ, Z-SCORE) ---
+// --- TẦNG 2: THUẬT TOÁN NÂNG CAO (MARKOV K3, CHU KỲ TƯƠNG QUAN & Z-SCORE) ---
 class AdvancedPatterns {
   get(tx, totals) {
     if (!tx || tx.length < 10) return null;
 
-    if (tx.length >= 16) {
-      const state2 = tx.slice(-2).join("");
+    // 1. Ma trận Markov bậc 2 và bậc 3
+    if (tx.length >= 18) {
+      const state3 = tx.slice(-3).join("");
       const trans = { T: 0, X: 0 };
-      for (let i = 0; i < tx.length - 2; i++) {
-        if (tx[i] + tx[i + 1] === state2) {
-          const next = tx[i + 2];
+      for (let i = 0; i < tx.length - 3; i++) {
+        if (tx[i] + tx[i + 1] + tx[i + 2] === state3) {
+          const next = tx[i + 3];
           if (next === "T") trans.T++;
           else if (next === "X") trans.X++;
         }
       }
       const sumT = trans.T + trans.X;
       if (sumT >= 3) {
-        const probT = (trans.T + 1) / (sumT + 2); // Laplace smoothing
-        if (probT >= 0.65) return { pred: "tài", conf: Math.round(76 + probT * 18), src: "Markov bậc 2" };
-        if (probT <= 0.35) return { pred: "xỉu", conf: Math.round(76 + (1 - probT) * 18), src: "Markov bậc 2" };
+        const probT = (trans.T + 1) / (sumT + 2);
+        if (probT >= 0.68) return { pred: "tài", conf: Math.round(78 + probT * 16), src: "Markov K3 xác suất cao" };
+        if (probT <= 0.32) return { pred: "xỉu", conf: Math.round(78 + (1 - probT) * 16), src: "Markov K3 xác suất cao" };
       }
     }
 
+    // 2. Tương quan chu kỳ bước sóng (Lag 2..9)
     let bestC = 0, bestS = 0;
-    for (let c = 2; c <= 8; c++) {
+    for (let c = 2; c <= 9; c++) {
       let match = 0, count = 0;
       for (let i = c; i < tx.length; i++) {
         if (tx[i] === tx[i - c]) match++;
@@ -136,25 +171,27 @@ class AdvancedPatterns {
       const predictedVal = tx[tx.length - bestC];
       return {
         pred: predictedVal === "T" ? "tài" : "xỉu",
-        conf: Math.min(94, Math.round(80 + bestS * 15)),
-        src: `Chu kỳ lặp ${bestC} tay`
+        conf: Math.min(94, Math.round(81 + bestS * 14)),
+        src: `Chu kỳ lặp sóng (${bestC} tay)`
       };
     }
 
-    if (totals && totals.length >= 14) {
-      const shortAvg = avg(totals.slice(-5));
-      const sStd = std(totals.slice(-5));
-      const zScore = (shortAvg - 10.5) / (sStd || 1.0);
+    // 3. Chuẩn hóa Z-Score dao động điểm tổng (Mean = 10.5)
+    if (totals && totals.length >= 12) {
+      const recentWindow = totals.slice(-6);
+      const m = avg(recentWindow);
+      const s = std(recentWindow) || 1.2;
+      const zScore = (m - 10.5) / s;
 
-      if (zScore > 1.4) return { pred: "xỉu", conf: 86, src: "Hồi quy đỉnh điểm" };
-      if (zScore < -1.4) return { pred: "tài", conf: 86, src: "Hồi quy đáy điểm" };
+      if (zScore >= 1.6) return { pred: "xỉu", conf: 88, src: "Hồi quy đỉnh điểm (Z-Score)" };
+      if (zScore <= -1.6) return { pred: "tài", conf: 88, src: "Hồi quy đáy điểm (Z-Score)" };
     }
 
     return null;
   }
 }
 
-// --- TẦNG 3: THUẬT TOÁN CAO CẤP (SHANNON ENTROPY, KMP, TỔ HỢP XÚC XẮC) ---
+// --- TẦNG 3: THUẬT TOÁN CAO CẤP (SHANNON ENTROPY, KMP & TỔ HỢP XÚC XẮC) ---
 class ElitePatterns {
   get(history) {
     if (!history || history.length < 12) return null;
@@ -162,14 +199,16 @@ class ElitePatterns {
     const totals = history.map(h => h.total);
     const dice = history.map(h => h.dice);
 
+    // 1. Phân tích bão hòa Entropy chuỗi nhị phân
     const e16 = entropy(tx.slice(-16));
-    if (e16 < 0.30) {
+    if (e16 < 0.28) {
       const last = tx[tx.length - 1];
-      return { pred: last === "T" ? "xỉu" : "tài", conf: 93, src: "Bão hòa Entropy" };
+      return { pred: last === "T" ? "xỉu" : "tài", conf: 93, src: "Bão hòa Entropy cực thấp" };
     }
 
+    // 2. KMP Đối sánh lịch sử sâu
     const seq = tx.map(v => (v === "T" ? 1 : 0));
-    const maxPatLen = Math.min(9, Math.floor(seq.length / 3));
+    const maxPatLen = Math.min(10, Math.floor(seq.length / 3));
     for (let len = maxPatLen; len >= 4; len--) {
       const target = seq.slice(-len);
       let hits = 0, nxt = null;
@@ -186,23 +225,25 @@ class ElitePatterns {
       if (nxt !== null && hits >= 2) {
         return {
           pred: nxt === 1 ? "tài" : "xỉu",
-          conf: Math.min(96, 81 + len * 2 + hits),
-          src: `Mẫu lịch sử (${len} nhịp)`
+          conf: Math.min(96, 82 + len * 2 + hits),
+          src: `Trùng khớp lịch sử (${len} nhịp)`
         };
       }
     }
 
-    const recentD = dice.slice(-5);
+    // 3. Tụ lực bề mặt xúc xắc (Face Saturation)
+    const recentDice = dice.slice(-5);
     let lowFaces = 0, highFaces = 0;
-    for (const d of recentD) {
+    for (const d of recentDice) {
       for (const val of d) {
         if (val <= 2) lowFaces++;
         if (val >= 5) highFaces++;
       }
     }
-    if (lowFaces >= 9) return { pred: "tài", conf: 88, src: "Tụ lực mặt nhỏ" };
-    if (highFaces >= 9) return { pred: "xỉu", conf: 88, src: "Tụ lực mặt lớn" };
+    if (lowFaces >= 9) return { pred: "tài", conf: 89, src: "Tụ lực mặt nhỏ (1-2)" };
+    if (highFaces >= 9) return { pred: "xỉu", conf: 89, src: "Tụ lực mặt lớn (5-6)" };
 
+    // 4. Vector động lượng tổng điểm
     let mom = 0;
     for (let i = 1; i < Math.min(8, totals.length); i++) {
       const delta = totals[totals.length - i] - totals[totals.length - i - 1];
@@ -210,14 +251,14 @@ class ElitePatterns {
       else if (delta <= -3) mom--;
     }
     if (Math.abs(mom) >= 4) {
-      return { pred: mom > 0 ? "xỉu" : "tài", conf: 85 + Math.abs(mom), src: "Động lượng điểm" };
+      return { pred: mom > 0 ? "xỉu" : "tài", conf: 85 + Math.abs(mom), src: "Động lượng điểm số" };
     }
 
     return null;
   }
 }
 
-// --- BỘ LỌC PHÁT HIỆN CẦU BẺ / BẪY BÃO SỐ ---
+// --- BỘ LỌC PHÁT HIỆN BẪY BÃO SỐ & ĐẢO CẦU ---
 class CheatGuard {
   constructor() {
     this.prob = 0;
@@ -248,23 +289,9 @@ class CheatGuard {
   }
 }
 
-function loadStore() {
-  try {
-    if (existsSync(STORE_FILE)) return JSON.parse(readFileSync(STORE_FILE, "utf8"));
-  } catch {}
-  return { hu: { preds: [], outcomes: [] }, md5: { preds: [], outcomes: [] } };
-}
-
-function saveStore(s) {
-  try { writeFileSync(STORE_FILE, JSON.stringify(s)); } catch {}
-}
-
-const store = loadStore();
-
 class Tracker {
   constructor(game) {
     this.game = game;
-    this.preds = store[game]?.preds || [];
     this.outcomes = store[game]?.outcomes || [];
     this.streakOk = 0;
     this.streakNg = 0;
@@ -277,8 +304,7 @@ class Tracker {
   record(session, pred, actual, src) {
     const ok = pred === actual;
     this.outcomes.push({ session, pred, actual, ok, src, ts: Date.now() });
-    if (this.outcomes.length > 300) this.outcomes = this.outcomes.slice(-250);
-    if (!store[this.game]) store[this.game] = { preds: [], outcomes: [] };
+    if (this.outcomes.length > 250) this.outcomes = this.outcomes.slice(-200);
     store[this.game].outcomes = this.outcomes;
     saveStore(store);
 
@@ -286,32 +312,26 @@ class Tracker {
       this.streakOk++;
       this.streakNg = 0;
       if (this.reverse && this.streakOk >= 2) this.reverse = false;
-      this.updateWeights(src, +0.02);
+      this.adjustWeights(src, 0.02);
     } else {
       this.streakNg++;
       this.streakOk = 0;
       if (this.streakNg >= 2 && !this.reverse) this.reverse = true;
-      this.updateWeights(src, -0.03);
+      this.adjustWeights(src, -0.03);
     }
-    this.normalize();
   }
 
-  updateWeights(src, delta) {
+  adjustWeights(src, delta) {
     const s = src || "";
-    if (s.includes("bệt") || s.includes("1-1") || s.includes("2-2") || s.includes("tiến") || s.includes("gãy") || s.includes("nhịp")) {
+    if (s.includes("bệt") || s.includes("1-1") || s.includes("2-2") || s.includes("tiến") || s.includes("lùi") || s.includes("kẹp")) {
       this.wBasic = Math.max(0.15, Math.min(0.6, this.wBasic + delta));
-    } else if (s.includes("Markov") || s.includes("Chu kỳ") || s.includes("Hồi quy")) {
+    } else if (s.includes("Markov") || s.includes("Chu kỳ") || s.includes("Z-Score")) {
       this.wAdv = Math.max(0.15, Math.min(0.6, this.wAdv + delta));
     } else {
       this.wElite = Math.max(0.15, Math.min(0.6, this.wElite + delta));
     }
-  }
-
-  normalize() {
-    const t = this.wBasic + this.wAdv + this.wElite;
-    this.wBasic /= t;
-    this.wAdv /= t;
-    this.wElite /= t;
+    const sum = this.wBasic + this.wAdv + this.wElite;
+    this.wBasic /= sum; this.wAdv /= sum; this.wElite /= sum;
   }
 
   applyRev(p) {
@@ -327,12 +347,12 @@ class Tracker {
   adjustConf(base) {
     let c = base;
     const acc = this.recentAcc(20);
-    if (acc >= 0.75) c += 7;
+    if (acc >= 0.75) c += 6;
     else if (acc >= 0.60) c += 3;
     else if (acc < 0.40) c -= 6;
     if (this.streakOk >= 3) c += 4;
     if (this.reverse) c -= 2;
-    return Math.min(98, Math.max(66, Math.round(c)));
+    return Math.min(98, Math.max(68, Math.round(c)));
   }
 
   status() {
@@ -346,6 +366,7 @@ class Tracker {
   }
 }
 
+// --- ĐỘNG CƠ XỬ LÝ CHÍNH HELIX (BẢO TOÀN DỰ ĐOÁN & KHÔNG MẤT PHIÊN) ---
 class Engine {
   constructor(game, url, parse) {
     this.game = game;
@@ -359,7 +380,7 @@ class Engine {
     this.elite = new ElitePatterns();
     this.guard = new CheatGuard();
     this.tracker = new Tracker(game);
-    this.pendingPred = null;
+    this.activePred = store[game]?.activePred || null;
     this.timer = null;
   }
 
@@ -387,15 +408,18 @@ class Engine {
       if (!this.curId) {
         this.history = list.filter(r => this.sessionIds.has(r.session));
         this.curId = this.history.at(-1)?.session || null;
+        this.generatePrediction();
         return;
       }
 
       const news = list.filter(r => r.session > this.curId && !this.history.some(h => h.session === r.session));
       for (const rec of news) {
-        if (this.pendingPred && rec.session === this.pendingPred.session) {
+        if (this.activePred && rec.session === this.activePred.session) {
           const actual = rec.tx === "T" ? "tài" : "xỉu";
-          this.tracker.record(rec.session, this.pendingPred.pred, actual, this.pendingPred.src);
-          this.pendingPred = null;
+          this.tracker.record(rec.session, this.activePred.pred, actual, this.activePred.src);
+          this.activePred = null;
+          store[this.game].activePred = null;
+          saveStore(store);
         }
         this.history.push(rec);
         this.sessionIds.add(rec.session);
@@ -404,7 +428,10 @@ class Engine {
         this.history = this.history.slice(-400);
         this.sessionIds = new Set(this.history.map(h => h.session));
       }
-      if (news.length) this.curId = this.history.at(-1).session;
+      if (news.length) {
+        this.curId = this.history.at(-1).session;
+        this.generatePrediction();
+      }
     } catch {}
   }
 
@@ -414,11 +441,17 @@ class Engine {
     this.timer = setInterval(() => this.pull(), ms);
   }
 
-  predict() {
+  generatePrediction() {
     if (this.history.length < 8) return null;
+    const nextSession = (this.history.at(-1)?.session || 0) + 1;
+
+    // Nếu đã có dự đoán của phiên mục tiêu này rồi thì giữ nguyên tuyệt đối, không sinh lại
+    if (this.activePred && this.activePred.session === nextSession) {
+      return this.activePred;
+    }
+
     const tx = this.history.map(h => h.tx);
     const totals = this.history.map(h => h.total);
-
     const advice = this.guard.check(this.history);
     const cands = [];
 
@@ -434,7 +467,7 @@ class Engine {
       const last = tx[tx.length - 1];
       pred = last === "T" ? "xỉu" : "tài";
       conf = 70;
-      src = "Đảo cầu ngẫu nhiên";
+      src = "Đảo chiều cân bằng";
     } else {
       const score = { "tài": 0, "xỉu": 0 };
       const best = { "tài": null, "xỉu": null };
@@ -459,28 +492,32 @@ class Engine {
       pred = pred === "tài" ? "xỉu" : "tài";
       conf = Math.min(97, conf + 4);
     } else if (advice === "canh_bao") {
-      conf = Math.max(66, conf - 5);
+      conf = Math.max(68, conf - 5);
     }
 
     pred = this.tracker.applyRev(pred);
     conf = this.tracker.adjustConf(conf);
 
-    const nextSession = (this.history.at(-1)?.session || 0) + 1;
-    this.pendingPred = { session: nextSession, pred, conf, src };
-    if (!store[this.game]) store[this.game] = { preds: [], outcomes: [] };
-    store[this.game].preds = (store[this.game].preds || []).filter(p => p.session >= nextSession - 5);
-    store[this.game].preds.push({ ...this.pendingPred, ts: Date.now() });
-    if (store[this.game].preds.length > 50) store[this.game].preds = store[this.game].preds.slice(-40);
-    saveStore(store);
-
-    return {
-      prediction: pred,
-      confidence: conf,
+    this.activePred = {
+      session: nextSession,
+      pred,
+      conf,
       src,
       reverse: this.tracker.reverse,
       cheat: advice !== "binh_thuong",
-      nextSession
+      ts: Date.now()
     };
+
+    store[this.game].activePred = this.activePred;
+    saveStore(store);
+    return this.activePred;
+  }
+
+  getPrediction() {
+    if (!this.activePred || this.activePred.session !== (this.history.at(-1)?.session || 0) + 1) {
+      return this.generatePrediction();
+    }
+    return this.activePred;
   }
 
   last() { return this.history.at(-1); }
@@ -502,16 +539,10 @@ function parseStream(data) {
 const hu = new Engine("hu", API_HU, parseStream);
 const md5 = new Engine("md5", API_MD5, parseStream);
 
-for (const g of ["hu", "md5"]) {
-  const eng = g === "hu" ? hu : md5;
-  const lasts = (store[g]?.preds || []).slice(-3);
-  if (lasts.length) eng.pendingPred = lasts.at(-1);
-}
-
 function checkKey(q) {
   const k = q?.key;
-  if (!k) return { ok: false, error: "VUI LÒNG NHẬP MÃ BẢN QUYỀN", contact: "Liên hệ Telegram: @anhkhoi_xabc" };
-  if (k !== VALID_KEY) return { ok: false, error: "MÃ KHÓA BẢN QUYỀN KHÔNG ĐÚNG", contact: "Liên hệ Telegram: @anhkhoi_xabc" };
+  if (!k) return { ok: false, error: "VUI LÒNG NHẬP MÃ BẢN QUYỀN", contact: "Telegram: @anhkhoi_xabc" };
+  if (k !== VALID_KEY) return { ok: false, error: "MÃ KHÓA BẢN QUYỀN KHÔNG ĐÚNG", contact: "Telegram: @anhkhoi_xabc" };
   return { ok: true };
 }
 
@@ -529,54 +560,13 @@ async function bootstrap() {
     index: "index.html"
   });
 
-  app.get("/api/taixiu/lc79", async (req, reply) => {
-    const ck = checkKey(req.query);
-    if (!ck.ok) return reply.status(401).send({ error: ck.error, contact: ck.contact });
-    const last = hu.last();
-    if (!last || hu.history.length < 8) return reply.status(503).send({ error: "Đang nạp dữ liệu Hũ..." });
-    const p = hu.predict();
-    return {
-      NguoiPhatHanh: "Dev Anh Khôi",
-      PhienTruoc: last.session,
-      XucXac: `${last.dice[0]} - ${last.dice[1]} - ${last.dice[2]}`,
-      KetQua: last.result.toLowerCase(),
-      PhienNay: p.nextSession,
-      DuDoan: p.prediction,
-      DoTinCay: p.confidence + "%"
-    };
-  });
-
-  app.get("/api/taixiumd5/lc79", async (req, reply) => {
-    const ck = checkKey(req.query);
-    if (!ck.ok) return reply.status(401).send({ error: ck.error, contact: ck.contact });
-    const last = md5.last();
-    if (!last || md5.history.length < 8) return reply.status(503).send({ error: "Đang nạp dữ liệu MD5..." });
-    const p = md5.predict();
-    return {
-      NguoiPhatHanh: "Dev Anh Khôi",
-      PhienTruoc: last.session,
-      XucXac: `${last.dice[0]} - ${last.dice[1]} - ${last.dice[2]}`,
-      KetQua: last.result.toLowerCase(),
-      PhienNay: p.nextSession,
-      DuDoan: p.prediction,
-      DoTinCay: p.confidence + "%"
-    };
-  });
-
-  app.get("/check-key", async (req) => {
-    const k = req.query.key;
-    if (!k) return { status: "error", message: "CHƯA NHẬP KEY", contact: "Liên hệ Telegram: @anhkhoi_xabc" };
-    if (k === VALID_KEY) return { status: "success", message: "KEY HỢP LỆ - XÁC THỰC THÀNH CÔNG" };
-    return { status: "error", message: "KEY SAI", contact: "Liên hệ Telegram: @anhkhoi_xabc" };
-  });
-
   app.get("/api/dashboard", async (req, reply) => {
     const ck = checkKey(req.query);
     if (!ck.ok) return reply.status(401).send({ error: ck.error, contact: ck.contact });
 
     const build = (eng) => {
       const last = eng.last();
-      const p = eng.history.length >= 8 ? eng.predict() : null;
+      const p = eng.history.length >= 8 ? eng.getPrediction() : null;
       const st = eng.tracker.status();
       return {
         last: last ? {
@@ -586,9 +576,9 @@ async function bootstrap() {
           result: last.result.toLowerCase()
         } : null,
         prediction: p ? {
-          session: p.nextSession,
-          pred: p.prediction,
-          conf: p.confidence,
+          session: p.session,
+          pred: p.pred,
+          conf: p.conf,
           src: p.src,
           reverse: p.reverse,
           cheat: p.cheat
@@ -611,7 +601,7 @@ async function bootstrap() {
 
   try {
     await app.listen({ port: PORT, host: "0.0.0.0" });
-    console.log(`[HELIX-ENGINE] Máy chủ hoạt động trên cổng :${PORT}`);
+    console.log(`[HELIX-ENGINE] Server listening on port :${PORT}`);
   } catch (err) {
     console.error(err);
     process.exit(1);
