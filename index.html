@@ -3,39 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>TX QUANTITATIVE TERMINAL // 2026</title>
+<title>HELIX // HỆ THỐNG DỰ ĐOÁN TÀI XỈU THỰC CHIẾN</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#070a12;
-  --surface:#0e1526;
-  --surface-border:#1b253d;
-  --accent:#3b82f6;
-  --accent-glow:rgba(59,130,246,0.35);
+  --nen-chinh:#06080f;
+  --the-chinh:#0c111d;
+  --vien-the:#1a2338;
+  --diem-nhan:#2563eb;
   --tai:#10b981;
-  --tai-glow:rgba(16,185,129,0.3);
-  --xiu:#ef4444;
-  --xiu-glow:rgba(239,68,68,0.3);
-  --text-main:#f8fafc;
-  --text-muted:#8a99ad;
-  --warn:#f59e0b;
+  --tai-sang:rgba(16,185,129,0.25);
+  --xiu:#f43f5e;
+  --xiu-sang:rgba(244,63,94,0.25);
+  --chu-chinh:#f8fafc;
+  --chu-phu:#8492a6;
+  --canh-bao:#f59e0b;
 }
 
 html,body{
   touch-action:manipulation;
-  background-color:var(--bg);
-  color:var(--text-main);
-  font-family:'Space Grotesk',sans-serif;
+  background-color:var(--nen-chinh);
+  color:var(--chu-chinh);
+  font-family:'Plus Jakarta Sans',sans-serif;
   min-height:100vh;
   overflow-x:hidden;
 }
 
 .mono{font-family:'JetBrains Mono',monospace}
 
-.container{
+.khung-chinh{
   max-width:1200px;
   margin:0 auto;
   padding:16px;
@@ -48,59 +47,73 @@ header{
   flex-wrap:wrap;
   gap:12px;
   padding-bottom:14px;
-  border-bottom:1px solid var(--surface-border);
+  border-bottom:1px solid var(--vien-the);
   margin-bottom:18px;
 }
 
-.brand{
+.thuong-hieu{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+
+.thuong-hieu-hang{
   display:flex;
   align-items:center;
   gap:10px;
 }
 
-.brand-dot{
+.cham-logo{
   width:10px;
   height:10px;
-  background:var(--accent);
+  background:var(--diem-nhan);
   border-radius:2px;
-  box-shadow:0 0 10px var(--accent);
+  box-shadow:0 0 10px var(--diem-nhan);
 }
 
-.brand h1{
-  font-size:1.1rem;
-  letter-spacing:0.02em;
+.thuong-hieu h1{
+  font-size:1.25rem;
+  letter-spacing:0.04em;
   font-weight:800;
   text-transform:uppercase;
 }
 
-.auth-form{
+.chu-ky-dev{
+  font-size:0.75rem;
+  font-weight:600;
+  color:#38bdf8;
+  letter-spacing:0.02em;
+}
+
+.khung-nhap-key{
   display:flex;
   align-items:center;
   gap:8px;
   width:100%;
-  max-width:380px;
+  max-width:360px;
 }
 
-.auth-form input{
-  background:#090d17;
-  border:1px solid var(--surface-border);
+.khung-nhap-key input{
+  background:#090d16;
+  border:1px solid var(--vien-the);
   border-radius:8px;
   padding:10px 14px;
-  color:var(--text-main);
+  color:var(--chu-chinh);
   font-size:16px;
   outline:none;
   flex:1;
+  transition:border-color 0.2s;
 }
 
-.auth-form input:focus{
-  border-color:var(--accent);
+.khung-nhap-key input:focus{
+  border-color:var(--diem-nhan);
 }
 
-.btn{
-  background:var(--accent);
+.nut-bam{
+  background:var(--diem-nhan);
   color:#fff;
   border:none;
-  padding:10px 18px;
+  padding:10px 20px;
   border-radius:8px;
   font-weight:700;
   font-size:0.85rem;
@@ -108,11 +121,11 @@ header{
   user-select:none;
 }
 
-.btn:active{transform:scale(0.98)}
+.nut-bam:active{transform:scale(0.98)}
 
-.error-banner{
-  background:rgba(239,68,68,0.1);
-  border:1px solid rgba(239,68,68,0.3);
+.hop-bao-loi{
+  background:rgba(244,63,94,0.1);
+  border:1px solid rgba(244,63,94,0.3);
   color:var(--xiu);
   padding:12px;
   border-radius:8px;
@@ -121,15 +134,15 @@ header{
   display:none;
 }
 
-.grid-layout{
+.luoi-giao-dien{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
   gap:16px;
 }
 
-.card{
-  background:var(--surface);
-  border:1px solid var(--surface-border);
+.the-chua{
+  background:var(--the-chinh);
+  border:1px solid var(--vien-the);
   border-radius:12px;
   padding:16px;
   display:flex;
@@ -137,102 +150,102 @@ header{
   gap:14px;
 }
 
-.card-header{
+.dau-the{
   display:flex;
   justify-content:space-between;
   align-items:center;
 }
 
-.card-header h2{
+.dau-the h2{
   font-size:0.95rem;
   font-weight:700;
 }
 
-.badge{
+.nhan-thuat-toan{
   font-size:0.7rem;
-  background:#141c2e;
-  border:1px solid #233152;
-  color:var(--text-muted);
+  background:#131a2b;
+  border:1px solid #1f2d4a;
+  color:var(--chu-phu);
   padding:3px 8px;
   border-radius:4px;
 }
 
-.main-signal{
-  background:linear-gradient(180deg,#070a12 0%,#0c1221 100%);
-  border:1px solid #162038;
+.hop-ket-qua-chinh{
+  background:linear-gradient(180deg,#060912 0%,#090e1a 100%);
+  border:1px solid #141d30;
   border-radius:10px;
-  padding:20px 12px;
+  padding:22px 12px;
   text-align:center;
 }
 
-.signal-text{
-  font-size:3rem;
+.chu-du-doan{
+  font-size:3.2rem;
   font-weight:800;
   line-height:1;
   text-transform:uppercase;
   letter-spacing:-0.03em;
 }
 
-.signal-text.tai{
+.chu-du-doan.tai{
   color:var(--tai);
-  filter:drop-shadow(0 0 14px var(--tai-glow));
+  filter:drop-shadow(0 0 16px var(--tai-sang));
 }
 
-.signal-text.xiu{
+.chu-du-doan.xiu{
   color:var(--xiu);
-  filter:drop-shadow(0 0 14px var(--xiu-glow));
+  filter:drop-shadow(0 0 16px var(--xiu-sang));
 }
 
-.signal-meta{
+.thong-tin-phu{
   display:flex;
   justify-content:center;
   align-items:center;
   gap:12px;
   margin-top:12px;
   font-size:0.8rem;
-  color:var(--text-muted);
+  color:var(--chu-phu);
 }
 
-.tag-flag{
+.the-canh-bao{
   font-size:0.65rem;
   font-weight:700;
   padding:2px 6px;
   border-radius:3px;
-  background:#291e0a;
-  color:var(--warn);
-  border:1px solid #573e0e;
+  background:#261805;
+  color:var(--canh-bao);
+  border:1px solid #4a300a;
 }
 
-.stats-grid{
+.luoi-thong-so{
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:8px;
 }
 
-.stat-box{
-  background:#070a12;
-  border:1px solid #141c2d;
+.o-thong-so{
+  background:#060912;
+  border:1px solid #131a29;
   border-radius:6px;
   padding:8px 4px;
   text-align:center;
 }
 
-.stat-box .lbl{
+.o-thong-so .tieu-de{
   font-size:0.65rem;
-  color:var(--text-muted);
+  color:var(--chu-phu);
   text-transform:uppercase;
 }
 
-.stat-box .val{
+.o-thong-so .gia-tri{
   font-size:0.85rem;
   font-weight:700;
   margin-top:2px;
 }
 
-.box-title{
+.tieu-de-khu-vuc{
   font-size:0.75rem;
   font-weight:700;
-  color:var(--text-muted);
+  color:var(--chu-phu);
   text-transform:uppercase;
   letter-spacing:0.04em;
   display:flex;
@@ -240,229 +253,232 @@ header{
   margin-bottom:6px;
 }
 
-.logs{
+.danh-sach-cuon{
   max-height:160px;
   overflow-y:auto;
-  border:1px solid #141c2d;
+  border:1px solid #131a29;
   border-radius:6px;
-  background:#070a12;
+  background:#060912;
   padding:4px 0;
 }
 
-.logs::-webkit-scrollbar{width:4px}
-.logs::-webkit-scrollbar-thumb{background:#1f293d;border-radius:2px}
+.danh-sach-cuon::-webkit-scrollbar{width:4px}
+.danh-sach-cuon::-webkit-scrollbar-thumb{background:#1b253b;border-radius:2px}
 
-.row{
+.hang-du-lieu{
   display:flex;
   align-items:center;
-  padding:5px 8px;
+  padding:6px 10px;
   font-size:0.75rem;
-  border-bottom:1px solid #0f1524;
+  border-bottom:1px solid #0d1322;
 }
 
-.row:last-child{border-bottom:none}
+.hang-du-lieu:last-child{border-bottom:none}
 
-.status-dot{
+.cham-trang-thai{
   width:6px;
   height:6px;
   border-radius:50%;
   margin-right:8px;
   flex-shrink:0;
 }
-.status-dot.T{background:var(--tai);box-shadow:0 0 6px var(--tai)}
-.status-dot.X{background:var(--xiu);box-shadow:0 0 6px var(--xiu)}
+.cham-trang-thai.T{background:var(--tai);box-shadow:0 0 6px var(--tai)}
+.cham-trang-thai.X{background:var(--xiu);box-shadow:0 0 6px var(--xiu)}
 
-.txt-ok{color:var(--tai);font-weight:700;margin-right:6px}
-.txt-ng{color:var(--xiu);font-weight:700;margin-right:6px}
+.nhan-dung{color:var(--tai);font-weight:700;margin-right:8px}
+.nhan-sai{color:var(--xiu);font-weight:700;margin-right:8px}
 
 footer{
   margin-top:24px;
   padding:16px;
   text-align:center;
   font-size:0.75rem;
-  color:var(--text-muted);
-  border-top:1px solid var(--surface-border);
+  color:var(--chu-phu);
+  border-top:1px solid var(--vien-the);
 }
 </style>
 </head>
 <body>
-<div class="container">
+<div class="khung-chinh">
   <header>
-    <div class="brand">
-      <div class="brand-dot"></div>
-      <h1>QUANTUM PRO CORE</h1>
+    <div class="thuong-hieu">
+      <div class="thuong-hieu-hang">
+        <div class="cham-logo"></div>
+        <h1>HELIX</h1>
+      </div>
+      <span class="chu-ky-dev">Phát hành bởi: Dev Anh Khôi</span>
     </div>
-    <div class="auth-form">
-      <input type="password" id="key" class="mono" placeholder="Input Key..." autocomplete="off">
-      <button class="btn" id="btn-run">SYNC</button>
+    <div class="khung-nhap-key">
+      <input type="password" id="key" class="mono" placeholder="Nhập mã truy cập..." autocomplete="off">
+      <button class="nut-bam" id="btn-ketnoi">KẾT NỐI</button>
     </div>
   </header>
 
-  <div id="err" class="error-banner"></div>
+  <div id="hop-loi" class="hop-bao-loi"></div>
 
-  <div class="grid-layout" id="workspace" style="display:none">
-    <!-- MODULE HU -->
-    <div class="card" id="hu-card">
-      <div class="card-header">
+  <div class="luoi-giao-dien" id="khu-vuc-lam-viec" style="display:none">
+    <!-- BẢNG TÀI XỈU HŨ -->
+    <div class="the-chua" id="the-hu">
+      <div class="dau-the">
         <h2>TÀI XỈU TRUYỀN THỐNG</h2>
-        <span class="badge mono" id="hu-src">INIT</span>
+        <span class="nhan-thuat-toan mono" id="hu-thuat-toan">ĐANG CHỜ</span>
       </div>
-      <div class="main-signal">
-        <div class="signal-text" id="hu-pred">—</div>
-        <div class="signal-meta mono">
-          <span>PHIÊN: <b id="hu-next" style="color:var(--text-main)">—</b></span>
-          <span>CONF: <b id="hu-conf" style="color:var(--text-main)">—</b></span>
-          <span id="hu-flags" class="tag-flag" style="display:none">REVERSE</span>
+      <div class="hop-ket-qua-chinh">
+        <div class="chu-du-doan" id="hu-du-doan">—</div>
+        <div class="thong-tin-phu mono">
+          <span>PHIÊN TIẾP: <b id="hu-phien-tiep" style="color:var(--chu-chinh)">—</b></span>
+          <span>ĐỘ TIN CẬY: <b id="hu-tin-cay" style="color:var(--chu-chinh)">—</b></span>
+          <span id="hu-co-bao" class="the-canh-bao" style="display:none">ĐẢO CẦU</span>
         </div>
       </div>
-      <div class="stats-grid mono">
-        <div class="stat-box"><div class="lbl">Last</div><div class="val" id="hu-last">—</div></div>
-        <div class="stat-box"><div class="lbl">Dice</div><div class="val" id="hu-dice">—</div></div>
-        <div class="stat-box"><div class="lbl">Sum</div><div class="val" id="hu-sum">—</div></div>
-        <div class="stat-box"><div class="lbl">Acc20</div><div class="val" id="hu-acc">—</div></div>
+      <div class="luoi-thong-so mono">
+        <div class="o-thong-so"><div class="tieu-de">Phiên Trước</div><div class="gia-tri" id="hu-phien-truoc">—</div></div>
+        <div class="o-thong-so"><div class="tieu-de">Xúc Xắc</div><div class="gia-tri" id="hu-xuc-xac">—</div></div>
+        <div class="o-thong-so"><div class="tieu-de">Tổng Điểm</div><div class="gia-tri" id="hu-tong-diem">—</div></div>
+        <div class="o-thong-so"><div class="tieu-de">Tỉ Lệ Trúng</div><div class="gia-tri" id="hu-ti-le">—</div></div>
       </div>
       <div>
-        <div class="box-title"><span>Verification Track</span><span>STATUS</span></div>
-        <div class="logs mono" id="hu-vlogs"></div>
+        <div class="tieu-de-khu-vuc"><span>Kiểm Định Đúng / Sai</span><span>KẾT QUẢ</span></div>
+        <div class="danh-sach-cuon mono" id="hu-kiem-dinh"></div>
       </div>
       <div>
-        <div class="box-title"><span>Realtime Sessions</span><span>DICE</span></div>
-        <div class="logs mono" id="hu-slogs"></div>
+        <div class="tieu-de-khu-vuc"><span>Lịch Sử Phiên Gần Đây</span><span>KẾT QUẢ</span></div>
+        <div class="danh-sach-cuon mono" id="hu-lich-su"></div>
       </div>
     </div>
 
-    <!-- MODULE MD5 -->
-    <div class="card" id="md5-card">
-      <div class="card-header">
-        <h2>TÀI XỈU MD5 QUANT</h2>
-        <span class="badge mono" id="md5-src">INIT</span>
+    <!-- BẢNG TÀI XỈU MD5 -->
+    <div class="the-chua" id="the-md5">
+      <div class="dau-the">
+        <h2>TÀI XỈU MD5</h2>
+        <span class="nhan-thuat-toan mono" id="md5-thuat-toan">ĐANG CHỜ</span>
       </div>
-      <div class="main-signal">
-        <div class="signal-text" id="md5-pred">—</div>
-        <div class="signal-meta mono">
-          <span>PHIÊN: <b id="md5-next" style="color:var(--text-main)">—</b></span>
-          <span>CONF: <b id="md5-conf" style="color:var(--text-main)">—</b></span>
-          <span id="md5-flags" class="tag-flag" style="display:none">REVERSE</span>
+      <div class="hop-ket-qua-chinh">
+        <div class="chu-du-doan" id="md5-du-doan">—</div>
+        <div class="thong-tin-phu mono">
+          <span>PHIÊN TIẾP: <b id="md5-phien-tiep" style="color:var(--chu-chinh)">—</b></span>
+          <span>ĐỘ TIN CẬY: <b id="md5-tin-cay" style="color:var(--chu-chinh)">—</b></span>
+          <span id="md5-co-bao" class="the-canh-bao" style="display:none">ĐẢO CẦU</span>
         </div>
       </div>
-      <div class="stats-grid mono">
-        <div class="stat-box"><div class="lbl">Last</div><div class="val" id="md5-last">—</div></div>
-        <div class="stat-box"><div class="lbl">Dice</div><div class="val" id="md5-dice">—</div></div>
-        <div class="stat-box"><div class="lbl">Sum</div><div class="val" id="md5-sum">—</div></div>
-        <div class="stat-box"><div class="lbl">Acc20</div><div class="val" id="md5-acc">—</div></div>
+      <div class="luoi-thong-so mono">
+        <div class="o-thong-so"><div class="tieu-de">Phiên Trước</div><div class="gia-tri" id="md5-phien-truoc">—</div></div>
+        <div class="o-thong-so"><div class="tieu-de">Xúc Xắc</div><div class="gia-tri" id="md5-xuc-xac">—</div></div>
+        <div class="o-thong-so"><div class="tieu-de">Tổng Điểm</div><div class="gia-tri" id="md5-tong-diem">—</div></div>
+        <div class="o-thong-so"><div class="tieu-de">Tỉ Lệ Trúng</div><div class="gia-tri" id="md5-ti-le">—</div></div>
       </div>
       <div>
-        <div class="box-title"><span>Verification Track</span><span>STATUS</span></div>
-        <div class="logs mono" id="md5-vlogs"></div>
+        <div class="tieu-de-khu-vuc"><span>Kiểm Định Đúng / Sai</span><span>KẾT QUẢ</span></div>
+        <div class="danh-sach-cuon mono" id="md5-kiem-dinh"></div>
       </div>
       <div>
-        <div class="box-title"><span>Realtime Sessions</span><span>DICE</span></div>
-        <div class="logs mono" id="md5-slogs"></div>
+        <div class="tieu-de-khu-vuc"><span>Lịch Sử Phiên Gần Đây</span><span>KẾT QUẢ</span></div>
+        <div class="danh-sach-cuon mono" id="md5-lich-su"></div>
       </div>
     </div>
   </div>
 
-  <footer class="mono">TX-QUANTUM CORE // AUTOREFRESH 4000ms // ZERO-ZOOM CERTIFIED</footer>
+  <footer class="mono">HỆ THỐNG HELIX · PHÁT HÀNH BỞI DEV ANH KHÔI · TỰ ĐỘNG LÀM MỚI 4 GIÂY</footer>
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
-let activeKey = localStorage.getItem("tx_key") || "";
-let loop = null;
+let keyHienTai = localStorage.getItem("helix_key") || "";
+let boDemThoiGian = null;
 
-if (activeKey) $("key").value = activeKey;
+if (keyHienTai) $("key").value = keyHienTai;
 
-function render(domain, payload) {
-  if (!payload) return;
-  const p = payload.prediction;
-  const l = payload.last;
+function hienThiDuLieu(kenh, duLieu) {
+  if (!duLieu) return;
+  const p = duLieu.prediction;
+  const l = duLieu.last;
 
   if (p) {
-    const el = $(`${domain}-pred`);
-    el.textContent = p.pred;
-    el.className = `signal-text ${p.pred === "tài" ? "tai" : "xiu"}`;
-    $(`${domain}-next`).textContent = `#${p.session}`;
-    $(`${domain}-conf`).textContent = `${p.conf}%`;
-    $(`${domain}-src`).textContent = p.src || "MARKOV";
+    const elDuDoan = $(`${kenh}-du-doan`);
+    elDuDoan.textContent = p.pred.toUpperCase();
+    elDuDoan.className = `chu-du-doan ${p.pred === "tài" ? "tai" : "xiu"}`;
+    $(`${kenh}-phien-tiep`).textContent = `#${p.session}`;
+    $(`${kenh}-tin-cay`).textContent = `${p.conf}%`;
+    $(`${kenh}-thuat-toan`).textContent = p.src || "ĐỘNG LƯỢNG";
 
-    const flags = $(`${domain}-flags`);
+    const elCoBao = $(`${kenh}-co-bao`);
     if (p.reverse || p.cheat) {
-      flags.style.display = "inline-block";
-      flags.textContent = p.reverse ? "INVERTED" : "GUARD";
+      elCoBao.style.display = "inline-block";
+      elCoBao.textContent = p.reverse ? "ĐẢO CẦU" : "CẢNH BÁO BẺ";
     } else {
-      flags.style.display = "none";
+      elCoBao.style.display = "none";
     }
   }
 
   if (l) {
-    $(`${domain}-last`).textContent = l.session;
-    $(`${domain}-dice`).textContent = l.dice.join(",");
-    $(`${domain}-sum`).textContent = `${l.total} (${l.result.toUpperCase()})`;
+    $(`${kenh}-phien-truoc`).textContent = l.session;
+    $(`${kenh}-xuc-xac`).textContent = l.dice.join(" - ");
+    $(`${kenh}-tong-diem`).textContent = `${l.total} (${l.result.toUpperCase()})`;
   }
 
-  $(`${domain}-acc`).textContent = payload.acc20 || "0%";
+  $(`${kenh}-ti-le`).textContent = duLieu.acc20 || "0%";
 
-  const v = $(`${domain}-vlogs`);
-  v.innerHTML = (payload.outcomes || []).map(o => `
-    <div class="row">
-      <span class="${o.ok ? 'txt-ok' : 'txt-ng'}">${o.ok ? '[OK]' : '[NG]'}</span>
+  const elKiemDinh = $(`${kenh}-kiem-dinh`);
+  elKiemDinh.innerHTML = (duLieu.outcomes || []).map(o => `
+    <div class="hang-du-lieu">
+      <span class="${o.ok ? 'nhan-dung' : 'nhan-sai'}">${o.ok ? '[ĐÚNG]' : '[SAI]'}</span>
       <span>#${o.session}</span>
-      <span style="margin:0 6px">${o.pred.toUpperCase()} → ${o.actual.toUpperCase()}</span>
-      <span style="color:var(--text-muted);margin-left:auto">${o.src || ''}</span>
+      <span style="margin:0 8px">${o.pred.toUpperCase()} → ${o.actual.toUpperCase()}</span>
+      <span style="color:var(--chu-phu);margin-left:auto">${o.src || ''}</span>
     </div>
-  `).join("") || '<div class="row" style="color:var(--text-muted)">Chưa có dữ liệu kiểm định.</div>';
+  `).join("") || '<div class="hang-du-lieu" style="color:var(--chu-phu)">Chưa có dữ liệu kiểm định.</div>';
 
-  const s = $(`${domain}-slogs`);
-  s.innerHTML = (payload.history || []).map(h => `
-    <div class="row">
-      <span class="status-dot ${h.tx}"></span>
+  const elLichSu = $(`${kenh}-lich-su`);
+  elLichSu.innerHTML = (duLieu.history || []).map(h => `
+    <div class="hang-du-lieu">
+      <span class="cham-trang-thai ${h.tx}"></span>
       <span>#${h.s}</span>
-      <span style="margin-left:12px;color:var(--text-muted)">[${h.d.join(",")}]</span>
+      <span style="margin-left:10px;color:var(--chu-phu)">[${h.d.join("-")}]</span>
       <span style="margin-left:auto;font-weight:700">${h.t} ${h.r.toUpperCase()}</span>
     </div>
   `).join("") || "";
 }
 
-async function sync() {
-  activeKey = $("key").value.trim();
-  const err = $("err");
-  if (!activeKey) {
-    err.textContent = "Vui lòng nhập Key xác thực.";
-    err.style.display = "block";
+async function dongBo() {
+  keyHienTai = $("key").value.trim();
+  const hopLoi = $("hop-loi");
+  if (!keyHienTai) {
+    hopLoi.textContent = "Vui lòng nhập mã bản quyền để kết nối.";
+    hopLoi.style.display = "block";
     return;
   }
-  localStorage.setItem("tx_key", activeKey);
+  localStorage.setItem("helix_key", keyHienTai);
 
   try {
-    const res = await fetch(`/api/dashboard?key=${encodeURIComponent(activeKey)}`);
+    const res = await fetch(`/api/dashboard?key=${encodeURIComponent(keyHienTai)}`);
     const data = await res.json();
 
     if (!res.ok) {
-      err.textContent = data.error || "Kết nối thất bại.";
-      err.style.display = "block";
-      $("workspace").style.display = "none";
+      hopLoi.textContent = data.error || "Kết nối thất bại. Mã bản quyền không hợp lệ.";
+      hopLoi.style.display = "block";
+      $("khu-vuc-lam-viec").style.display = "none";
       return;
     }
 
-    err.style.display = "none";
-    $("workspace").style.display = "grid";
-    render("hu", data.hu);
-    render("md5", data.md5);
+    hopLoi.style.display = "none";
+    $("khu-vuc-lam-viec").style.display = "grid";
+    hienThiDuLieu("hu", data.hu);
+    hienThiDuLieu("md5", data.md5);
   } catch (e) {
-    err.textContent = "Không thể kết nối đến máy chủ API.";
-    err.style.display = "block";
+    hopLoi.textContent = "Không thể kết nối đến máy chủ. Đang thử lại...";
+    hopLoi.style.display = "block";
   }
 }
 
-$("btn-run").onclick = () => {
-  sync();
-  if (loop) clearInterval(loop);
-  loop = setInterval(sync, 4000);
+$("btn-ketnoi").onclick = () => {
+  dongBo();
+  if (boDemThoiGian) clearInterval(boDemThoiGian);
+  boDemThoiGian = setInterval(dongBo, 4000);
 };
 
-if (activeKey) {
-  sync();
-  loop = setInterval(sync, 4000);
+if (keyHienTai) {
+  dongBo();
+  boDemThoiGian = setInterval(dongBo, 4000);
 }
 </script>
 </body>
