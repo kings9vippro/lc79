@@ -1,24 +1,96 @@
-// server.js - Part 2: Advanced & Elite Engines, CheatGuard, Tracker & Endpoints
+import fastify from "fastify";
+import cors from "@fastify/cors";
+import fastifyStatic from "@fastify/static";
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 
---- server.js
-+++ server.js
-@@ -4,7 +4,6 @@
- import * as path from "node:path";
- import { fileURLToPath } from "node:url";
- import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
--import fetch from "node-fetch";
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const PORT = process.env.PORT || 3000;
+const VALID_KEY = Buffer.from("ZG9jcmFja2hpaGk=", "base64").toString("utf8");
+const DATA_DIR = path.join(__dirname, "data");
+const STORE_FILE = path.join(DATA_DIR, "store.json");
 
- const __dirname = path.dirname(fileURLToPath(import.meta.url));
- const PORT = process.env.PORT || 3000;
+const API_HU = "https://wtx.tele68.com/v1/tx/lite-sessions?cp=R&cl=R&pf=web&at=83991213bfd4c554dc94bcd98979bdc5";
+const API_MD5 = "https://wtxmd52.tele68.com/v1/txmd5/sessions";
+
+if (!existsSync(DATA_DIR)) {
+  try {
+    mkdirSync(DATA_DIR, { recursive: true });
+  } catch {}
+}
+
+const avg = a => (a && a.length ? a.reduce((s, v) => s + v, 0) / a.length : 0);
+const std = a => {
+  if (!a || a.length < 2) return 0;
+  const m = avg(a);
+  return Math.sqrt(avg(a.map(n => (n - m) ** 2)));
+};
+const entropy = arr => {
+  if (!arr || !arr.length) return 0;
+  const f = {};
+  for (let i = 0; i < arr.length; i++) f[arr[i]] = (f[arr[i]] || 0) + 1;
+  let e = 0, n = arr.length;
+  for (const k in f) {
+    const p = f[k] / n;
+    e -= p * Math.log2(p);
+  }
+  return e;
+};
+const streakLen = tx => {
+  if (!tx || !tx.length) return 0;
+  let s = 1;
+  for (let i = tx.length - 2; i >= 0; i--) {
+    if (tx[i] === tx[tx.length - 1]) s++;
+    else break;
+  }
+  return s;
+};
+
+class BasicPatterns {
+  get(tx) {
+    if (!tx || tx.length < 4) return null;
+    const last = tx[tx.length - 1];
+    const s = streakLen(tx);
+
+    if (s >= 7) return { pred: last === "T" ? "xỉu" : "tài", conf: 88, src: `break-streak-${s}` };
+    if (s >= 4 && s < 7) return { pred: last === "T" ? "tài" : "xỉu", conf: 84 + (s - 4) * 2, src: `ride-streak-${s}` };
+
+    const last6 = tx.slice(-6);
+    if (last6.length === 6 && last6.every((v, i) => i === 0 || v !== last6[i - 1])) {
+      return { pred: last === "T" ? "xỉu" : "tài", conf: 85, src: "pingpong-1-1" };
+    }
+
+    const last4 = tx.slice(-4);
+    if (last4[0] === last4[1] && last4[2] === last4[3] && last4[0] !== last4[2]) {
+      return { pred: last4[3] === "T" ? "xỉu" : "tài", conf: 81, src: "symmetry-2-2" };
+    }
+
+    const last6Seq = tx.slice(-6).join("");
+    if (last6Seq === "TTTXXT" || last6Seq === "XXXTTX") {
+      return { pred: last === "T" ? "tài" : "xỉu", conf: 83, src: "cascade-3-2-1" };
+    }
+    if (last6Seq === "TXXTTT" || last6Seq === "XTTXXX") {
+      return { pred: last === "T" ? "xỉu" : "tài", conf: 84, src: "ladder-1-2-3" };
+    }
+
+    const last3 = tx.slice(-3).join("");
+    if (last3 === "TTX") return { pred: "tài", conf: 77, src: "pattern-2-1" };
+    if (last3 === "XXT") return { pred: "xỉu", conf: 77, src: "pattern-2-1" };
+    if (last3 === "TXX") return { pred: "tài", conf: 76, src: "pattern-1-2" };
+    if (last3 === "XTT") return { pred: "xỉu", conf: 76, src: "pattern-1-2" };
+
+    return null;
+  }
+}
+
 class AdvancedPatterns {
-  // Markov Transition Order 1 & 2 + Mean Reversion + Cycle Detection
   get(tx, totals) {
-    if (tx.length < 10) return null;
+    if (!tx || tx.length < 10) return null;
 
-    // 1. Higher-Order Markov State Estimator
     if (tx.length >= 16) {
       const state2 = tx.slice(-2).join("");
-      let trans = { T: 0, X: 0 };
+      const trans = { T: 0, X: 0 };
       for (let i = 0; i < tx.length - 2; i++) {
         if (tx[i] + tx[i + 1] === state2) {
           const next = tx[i + 2];
@@ -34,7 +106,6 @@ class AdvancedPatterns {
       }
     }
 
-    // 2. High-Density Auto-Correlation Cycle (Lag 2..8)
     let bestC = 0, bestS = 0;
     for (let c = 2; c <= 8; c++) {
       let match = 0, count = 0;
@@ -57,8 +128,7 @@ class AdvancedPatterns {
       };
     }
 
-    // 3. EWMA & Standard Deviation Mean Reversion
-    if (totals.length >= 14) {
+    if (totals && totals.length >= 14) {
       const shortWindow = totals.slice(-5);
       const longWindow = totals.slice(-14);
       const shortAvg = avg(shortWindow);
@@ -76,21 +146,18 @@ class AdvancedPatterns {
 }
 
 class ElitePatterns {
-  // Combinatorial Dice Layout, Kolmogorov Complexity / Substring Match, Entropy
   get(history) {
-    if (history.length < 12) return null;
+    if (!history || history.length < 12) return null;
     const tx = history.map(h => h.tx);
     const totals = history.map(h => h.total);
     const dice = history.map(h => h.dice);
 
-    // 1. Sliding Window Binary Entropy Shift
     const e16 = entropy(tx.slice(-16));
     if (e16 < 0.32) {
       const last = tx[tx.length - 1];
       return { pred: last === "T" ? "xỉu" : "tài", conf: 91, src: "low-entropy-break" };
     }
 
-    // 2. Exact Substring History Matching (KMP Search Variant)
     const seq = tx.map(v => (v === "T" ? 1 : 0));
     const maxPatLen = Math.min(9, Math.floor(seq.length / 3));
     for (let len = maxPatLen; len >= 4; len--) {
@@ -115,7 +182,6 @@ class ElitePatterns {
       }
     }
 
-    // 3. Dice Face Clustering & Saturation
     const recentD = dice.slice(-5);
     let lowFaces = 0, highFaces = 0;
     for (const d of recentD) {
@@ -127,7 +193,6 @@ class ElitePatterns {
     if (lowFaces >= 9) return { pred: "tài", conf: 86, src: "face-underbought" };
     if (highFaces >= 9) return { pred: "xỉu", conf: 86, src: "face-oversold" };
 
-    // 4. Momentum Delta Sum
     let mom = 0;
     for (let i = 1; i < Math.min(8, totals.length); i++) {
       const delta = totals[totals.length - i] - totals[totals.length - i - 1];
@@ -147,7 +212,7 @@ class CheatGuard {
     this.prob = 0;
   }
   check(history) {
-    if (history.length < 15) { this.prob = 0; return "normal"; }
+    if (!history || history.length < 15) { this.prob = 0; return "normal"; }
     const tx = history.map(h => h.tx);
     const totals = history.map(h => h.total);
     let score = 0;
@@ -172,6 +237,19 @@ class CheatGuard {
   }
 }
 
+function loadStore() {
+  try {
+    if (existsSync(STORE_FILE)) return JSON.parse(readFileSync(STORE_FILE, "utf8"));
+  } catch {}
+  return { hu: { preds: [], outcomes: [] }, md5: { preds: [], outcomes: [] } };
+}
+
+function saveStore(s) {
+  try { writeFileSync(STORE_FILE, JSON.stringify(s)); } catch {}
+}
+
+const store = loadStore();
+
 class Tracker {
   constructor(game) {
     this.game = game;
@@ -189,6 +267,7 @@ class Tracker {
     const ok = pred === actual;
     this.outcomes.push({ session, pred, actual, ok, src, ts: Date.now() });
     if (this.outcomes.length > 300) this.outcomes = this.outcomes.slice(-250);
+    if (!store[this.game]) store[this.game] = { preds: [], outcomes: [] };
     store[this.game].outcomes = this.outcomes;
     saveStore(store);
 
@@ -207,9 +286,10 @@ class Tracker {
   }
 
   updateWeights(src, delta) {
-    if (src.includes("streak") || src.includes("1-1") || src.includes("2-2") || src.includes("ladder")) {
+    const s = src || "";
+    if (s.includes("streak") || s.includes("1-1") || s.includes("2-2") || s.includes("ladder")) {
       this.wBasic = Math.max(0.15, Math.min(0.6, this.wBasic + delta));
-    } else if (src.includes("markov") || src.includes("cycle") || src.includes("reversion")) {
+    } else if (s.includes("markov") || s.includes("cycle") || s.includes("reversion")) {
       this.wAdv = Math.max(0.15, Math.min(0.6, this.wAdv + delta));
     } else {
       this.wElite = Math.max(0.15, Math.min(0.6, this.wElite + delta));
@@ -260,19 +340,6 @@ class Tracker {
   }
 }
 
-function loadStore() {
-  try {
-    if (existsSync(STORE_FILE)) return JSON.parse(readFileSync(STORE_FILE, "utf8"));
-  } catch {}
-  return { hu: { preds: [], outcomes: [] }, md5: { preds: [], outcomes: [] } };
-}
-
-function saveStore(s) {
-  try { writeFileSync(STORE_FILE, JSON.stringify(s)); } catch {}
-}
-
-let store = loadStore();
-
 class Engine {
   constructor(game, url, parse) {
     this.game = game;
@@ -292,10 +359,15 @@ class Engine {
 
   async pull() {
     try {
-      const res = await fetch(this.url, { timeout: 8000 });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 7000);
+      const res = await fetch(this.url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) return;
       const data = await res.json();
       const list = this.parse(data);
-      if (!list.length) return;
+      if (!list || !list.length) return;
 
       const fresh = [];
       for (const r of list) {
@@ -358,8 +430,8 @@ class Engine {
       conf = 68;
       src = "baseline-reversal";
     } else {
-      const score = { tài: 0, xỉu: 0 };
-      const best = { tài: null, xỉu: null };
+      const score = { "tài": 0, "xỉu": 0 };
+      const best = { "tài": null, "xỉu": null };
       for (const c of cands) {
         score[c.pred] += c.conf * c.w;
         if (!best[c.pred] || c.conf > best[c.pred].conf) best[c.pred] = c;
@@ -389,6 +461,7 @@ class Engine {
 
     const nextSession = (this.history.at(-1)?.session || 0) + 1;
     this.pendingPred = { session: nextSession, pred, conf, src };
+    if (!store[this.game]) store[this.game] = { preds: [], outcomes: [] };
     store[this.game].preds = (store[this.game].preds || []).filter(p => p.session >= nextSession - 5);
     store[this.game].preds.push({ ...this.pendingPred, ts: Date.now() });
     if (store[this.game].preds.length > 50) store[this.game].preds = store[this.game].preds.slice(-40);
@@ -418,7 +491,7 @@ class Engine {
 }
 
 function parseStream(data) {
-  if (!data?.list) return [];
+  if (!data || !data.list) return [];
   return data.list
     .map(i => ({
       session: i.id,
@@ -435,7 +508,7 @@ const md5 = new Engine("md5", API_MD5, parseStream);
 
 for (const g of ["hu", "md5"]) {
   const eng = g === "hu" ? hu : md5;
-  const lasts = (store[g].preds || []).slice(-3);
+  const lasts = (store[g]?.preds || []).slice(-3);
   if (lasts.length) eng.pendingPred = lasts.at(-1);
 }
 
@@ -446,109 +519,109 @@ function checkKey(q) {
   return { ok: true };
 }
 
-// --- FASTIFY SERVER CONFIG & ZERO-FAIL STATIC RESOLVER ---
-const app = fastify({ logger: false });
-await app.register(cors, { origin: "*" });
+async function bootstrap() {
+  const app = fastify({ logger: false });
+  await app.register(cors, { origin: "*" });
 
-// Support cả public/index.html lẫn ./index.html ngay tại root
-await app.register(fastifyStatic, {
-  root: PUBLIC_DIR,
-  prefix: "/",
-  index: "index.html"
-});
+  const rootStaticDir = existsSync(path.join(__dirname, "public"))
+    ? path.join(__dirname, "public")
+    : __dirname;
 
-app.get("/", async (_, reply) => {
-  return reply.sendFile("index.html", PUBLIC_DIR);
-});
+  await app.register(fastifyStatic, {
+    root: rootStaticDir,
+    prefix: "/",
+    index: "index.html"
+  });
 
-app.get("/api/taixiu/lc79", async (req, reply) => {
-  const ck = checkKey(req.query);
-  if (!ck.ok) return reply.status(401).send({ error: ck.error, contact: ck.contact });
-  const last = hu.last();
-  if (!last || hu.history.length < 8) return reply.status(503).send({ error: "Đang nạp luồng HŨ..." });
-  const p = hu.predict();
-  return {
-    Id: "@anhkhoi_xabc",
-    Phien_truoc: last.session,
-    Xucxac: `${last.dice[0]} - ${last.dice[1]} - ${last.dice[2]}`,
-    Ketqua: last.result.toLowerCase(),
-    Phien_nay: p.nextSession,
-    Dudoan: p.prediction,
-    Dotincay: p.confidence + "%"
-  };
-});
-
-app.get("/api/taixiumd5/lc79", async (req, reply) => {
-  const ck = checkKey(req.query);
-  if (!ck.ok) return reply.status(401).send({ error: ck.error, contact: ck.contact });
-  const last = md5.last();
-  if (!last || md5.history.length < 8) return reply.status(503).send({ error: "Đang nạp luồng MD5..." });
-  const p = md5.predict();
-  return {
-    Id: "@anhkhoi_xabc",
-    Phien_truoc: last.session,
-    Xucxac: `${last.dice[0]} - ${last.dice[1]} - ${last.dice[2]}`,
-    Ketqua: last.result.toLowerCase(),
-    Phien_nay: p.nextSession,
-    Dudoan: p.prediction,
-    Dotincay: p.confidence + "%"
-  };
-});
-
-app.get("/check-key", async (req) => {
-  const k = req.query.key;
-  if (!k) return { status: "error", message: "CHƯA NHẬP KEY", contact: "IB Telegram @anhkhoi_xabc" };
-  if (k === VALID_KEY) return { status: "success", message: "KEY HỢP LỆ" };
-  return { status: "error", message: "KEY SAI", contact: "IB Telegram @anhkhoi_xabc" };
-});
-
-app.get("/api/dashboard", async (req, reply) => {
-  const ck = checkKey(req.query);
-  if (!ck.ok) return reply.status(401).send({ error: ck.error, contact: ck.contact });
-
-  const build = (eng) => {
-    const last = eng.last();
-    const p = eng.history.length >= 8 ? eng.predict() : null;
-    const st = eng.tracker.status();
+  app.get("/api/taixiu/lc79", async (req, reply) => {
+    const ck = checkKey(req.query);
+    if (!ck.ok) return reply.status(401).send({ error: ck.error, contact: ck.contact });
+    const last = hu.last();
+    if (!last || hu.history.length < 8) return reply.status(503).send({ error: "Đang nạp luồng HŨ..." });
+    const p = hu.predict();
     return {
-      last: last ? {
-        session: last.session,
-        dice: last.dice,
-        total: last.total,
-        result: last.result.toLowerCase()
-      } : null,
-      prediction: p ? {
-        session: p.nextSession,
-        pred: p.prediction,
-        conf: p.confidence,
-        src: p.src,
-        reverse: p.reverse,
-        cheat: p.cheat
-      } : null,
-      acc20: st.acc20,
-      streakOk: st.streakOk,
-      streakNg: st.streakNg,
-      reverse: st.reverse,
-      weights: st.weights,
-      outcomes: st.lastOutcomes,
-      history: eng.history.slice(-30).reverse().map(h => ({
-        s: h.session, d: h.dice, t: h.total, r: h.result.toLowerCase(), tx: h.tx
-      }))
+      Id: "@anhkhoi_xabc",
+      Phien_truoc: last.session,
+      Xucxac: `${last.dice[0]} - ${last.dice[1]} - ${last.dice[2]}`,
+      Ketqua: last.result.toLowerCase(),
+      Phien_nay: p.nextSession,
+      Dudoan: p.prediction,
+      Dotincay: p.confidence + "%"
     };
-  };
+  });
 
-  return { hu: build(hu), md5: build(md5), ts: Date.now() };
-});
+  app.get("/api/taixiumd5/lc79", async (req, reply) => {
+    const ck = checkKey(req.query);
+    if (!ck.ok) return reply.status(401).send({ error: ck.error, contact: ck.contact });
+    const last = md5.last();
+    if (!last || md5.history.length < 8) return reply.status(503).send({ error: "Đang nạp luồng MD5..." });
+    const p = md5.predict();
+    return {
+      Id: "@anhkhoi_xabc",
+      Phien_truoc: last.session,
+      Xucxac: `${last.dice[0]} - ${last.dice[1]} - ${last.dice[2]}`,
+      Ketqua: last.result.toLowerCase(),
+      Phien_nay: p.nextSession,
+      Dudoan: p.prediction,
+      Dotincay: p.confidence + "%"
+    };
+  });
 
-const start = async () => {
+  app.get("/check-key", async (req) => {
+    const k = req.query.key;
+    if (!k) return { status: "error", message: "CHƯA NHẬP KEY", contact: "IB Telegram @anhkhoi_xabc" };
+    if (k === VALID_KEY) return { status: "success", message: "KEY HỢP LỆ" };
+    return { status: "error", message: "KEY SAI", contact: "IB Telegram @anhkhoi_xabc" };
+  });
+
+  app.get("/api/dashboard", async (req, reply) => {
+    const ck = checkKey(req.query);
+    if (!ck.ok) return reply.status(401).send({ error: ck.error, contact: ck.contact });
+
+    const build = (eng) => {
+      const last = eng.last();
+      const p = eng.history.length >= 8 ? eng.predict() : null;
+      const st = eng.tracker.status();
+      return {
+        last: last ? {
+          session: last.session,
+          dice: last.dice,
+          total: last.total,
+          result: last.result.toLowerCase()
+        } : null,
+        prediction: p ? {
+          session: p.nextSession,
+          pred: p.prediction,
+          conf: p.confidence,
+          src: p.src,
+          reverse: p.reverse,
+          cheat: p.cheat
+        } : null,
+        acc20: st.acc20,
+        streakOk: st.streakOk,
+        streakNg: st.streakNg,
+        reverse: st.reverse,
+        weights: st.weights,
+        outcomes: st.lastOutcomes,
+        history: eng.history.slice(-30).reverse().map(h => ({
+          s: h.session, d: h.dice, t: h.total, r: h.result.toLowerCase(), tx: h.tx
+        }))
+      };
+    };
+
+    return { hu: build(hu), md5: build(md5), ts: Date.now() };
+  });
+
   hu.start(4000);
   md5.start(4000);
+
   try {
     await app.listen({ port: PORT, host: "0.0.0.0" });
-    console.log(`[CORE] Server online on port ${PORT}`);
-  } catch (e) {
-    console.error(e.message);
+    console.log(`[CORE] Server listening on :${PORT}`);
+  } catch (err) {
+    console.error(err);
     process.exit(1);
   }
-};
-start();
+}
+
+bootstrap();
