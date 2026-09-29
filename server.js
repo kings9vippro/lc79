@@ -20,7 +20,7 @@ if (!existsSync(DATA_DIR)) {
   } catch {}
 }
 
-// --- TIỆN ÍCH TOÁN HỌC & ĐO LƯỜNG ENTROPY ---
+// --- TIỆN ÍCH TOÁN HỌC & ENTROPY ---
 const avg = arr => (arr && arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : 0);
 
 const std = arr => {
@@ -58,56 +58,49 @@ class BasicPatterns {
     const last = tx[tx.length - 1];
     const s = streakLen(tx);
 
-    // Bệt dài >= 7 tay: Bẻ bệt theo xác suất bảo toàn
     if (s >= 7) return { pred: last === "T" ? "xỉu" : "tài", conf: 89, src: `Bẻ bệt (${s} tay)` };
-
-    // Bệt non 4-6 tay: Đu bệt xu hướng mạnh
     if (s >= 4 && s < 7) return { pred: last === "T" ? "tài" : "xỉu", conf: 84 + (s - 4) * 2, src: `Đu bệt (${s} tay)` };
 
-    // Cầu đảo 1-1 (Ping-pong)
     const last6 = tx.slice(-6);
     if (last6.length === 6 && last6.every((v, i) => i === 0 || v !== last6[i - 1])) {
       return { pred: last === "T" ? "xỉu" : "tài", conf: 86, src: "Cầu đảo 1-1" };
     }
 
-    // Cầu 2-2 đối xứng
     const last4 = tx.slice(-4);
     if (last4[0] === last4[1] && last4[2] === last4[3] && last4[0] !== last4[2]) {
-      return { pred: last4[3] === "T" ? "xỉu" : "tài", conf: 82, src: "Cầu đôi 2-2" };
+      return { pred: last4[3] === "T" ? "xỉu" : "tài", conf: 83, src: "Cầu đôi 2-2" };
     }
 
-    // Cầu 3-2-1
     const seq6 = tx.slice(-6).join("");
     if (seq6 === "TTTXXT" || seq6 === "XXXTTX") {
       return { pred: last === "T" ? "tài" : "xỉu", conf: 85, src: "Cầu gãy 3-2-1" };
     }
-
-    // Cầu 1-2-3 bậc thang
     if (seq6 === "TXXTTT" || seq6 === "XTTXXX") {
       return { pred: last === "T" ? "xỉu" : "tài", conf: 85, src: "Cầu tiến 1-2-3" };
     }
 
-    // Cầu 2-1-2
     const last5 = tx.slice(-5).join("");
     if (last5 === "TTXTT" || last5 === "XXTXX") {
-      return { pred: last === "T" ? "xỉu" : "tài", conf: 81, src: "Cầu kẹp 2-1-2" };
+      return { pred: last === "T" ? "xỉu" : "tài", conf: 82, src: "Cầu kẹp 2-1-2" };
     }
 
-    // Nhịp 2-1 ngắn
-    const last3 = tx.slice(-3).join("");
-    if (last3 === "TTX") return { pred: "tài", conf: 78, src: "Nhịp 2-1" };
-    if (last3 === "XXT") return { pred: "xỉu", conf: 78, src: "Nhịp 2-1" };
+    const last4Seq = tx.slice(-4).join("");
+    if (last4Seq === "TTTX" || last4Seq === "XXXT") {
+      return { pred: last === "T" ? "xỉu" : "tài", conf: 81, src: "Cầu nhịp 3-1" };
+    }
+    if (last4Seq === "TXXX" || last4Seq === "XTTT") {
+      return { pred: last === "T" ? "tài" : "xỉu", conf: 81, src: "Cầu nhịp 1-3" };
+    }
 
     return null;
   }
 }
 
-// --- TẦNG 2: THUẬT TOÁN BẮT CẦU NÂNG CAO (MARKOV & CHU KỲ & EWMA) ---
+// --- TẦNG 2: THUẬT TOÁN NÂNG CAO (MARKOV, CHU KỲ, Z-SCORE) ---
 class AdvancedPatterns {
   get(tx, totals) {
     if (!tx || tx.length < 10) return null;
 
-    // 1. Chuỗi Markov bậc 2: Xác suất chuyển dịch trạng thái
     if (tx.length >= 16) {
       const state2 = tx.slice(-2).join("");
       const trans = { T: 0, X: 0 };
@@ -120,13 +113,12 @@ class AdvancedPatterns {
       }
       const sumT = trans.T + trans.X;
       if (sumT >= 3) {
-        const probT = trans.T / sumT;
-        if (probT >= 0.70) return { pred: "tài", conf: Math.round(76 + probT * 18), src: "Markov bậc 2" };
-        if (probT <= 0.30) return { pred: "xỉu", conf: Math.round(76 + (1 - probT) * 18), src: "Markov bậc 2" };
+        const probT = (trans.T + 1) / (sumT + 2); // Laplace smoothing
+        if (probT >= 0.65) return { pred: "tài", conf: Math.round(76 + probT * 18), src: "Markov bậc 2" };
+        if (probT <= 0.35) return { pred: "xỉu", conf: Math.round(76 + (1 - probT) * 18), src: "Markov bậc 2" };
       }
     }
 
-    // 2. Quét chu kỳ tự tương quan (Lag 2..8)
     let bestC = 0, bestS = 0;
     for (let c = 2; c <= 8; c++) {
       let match = 0, count = 0;
@@ -149,23 +141,20 @@ class AdvancedPatterns {
       };
     }
 
-    // 3. Hồi quy giá trị trung bình điểm tổng (EWMA Overbought/Oversold)
     if (totals && totals.length >= 14) {
       const shortAvg = avg(totals.slice(-5));
-      const longAvg = avg(totals.slice(-14));
       const sStd = std(totals.slice(-5));
+      const zScore = (shortAvg - 10.5) / (sStd || 1.0);
 
-      if (shortAvg > 12.6 && sStd < 2.0) return { pred: "xỉu", conf: 86, src: "Hồi quy đỉnh điểm" };
-      if (shortAvg < 8.4 && sStd < 2.0) return { pred: "tài", conf: 86, src: "Hồi quy đáy điểm" };
-      if (shortAvg - longAvg > 2.2) return { pred: "xỉu", conf: 81, src: "Kiệt đà tăng điểm" };
-      if (longAvg - shortAvg > 2.2) return { pred: "tài", conf: 81, src: "Kiệt đà giảm điểm" };
+      if (zScore > 1.4) return { pred: "xỉu", conf: 86, src: "Hồi quy đỉnh điểm" };
+      if (zScore < -1.4) return { pred: "tài", conf: 86, src: "Hồi quy đáy điểm" };
     }
 
     return null;
   }
 }
 
-// --- TẦNG 3: THUẬT TOÁN CAO CẤP (ENTROPY & MẶT XÍ NGẦU & MOMENTUM) ---
+// --- TẦNG 3: THUẬT TOÁN CAO CẤP (SHANNON ENTROPY, KMP, TỔ HỢP XÚC XẮC) ---
 class ElitePatterns {
   get(history) {
     if (!history || history.length < 12) return null;
@@ -173,14 +162,12 @@ class ElitePatterns {
     const totals = history.map(h => h.total);
     const dice = history.map(h => h.dice);
 
-    // 1. Phân tích Shannon Entropy (Đo độ thuần của chuỗi nhị phân)
     const e16 = entropy(tx.slice(-16));
     if (e16 < 0.30) {
       const last = tx[tx.length - 1];
-      return { pred: last === "T" ? "xỉu" : "tài", conf: 92, src: "Bão hòa Entropy" };
+      return { pred: last === "T" ? "xỉu" : "tài", conf: 93, src: "Bão hòa Entropy" };
     }
 
-    // 2. Đối sánh mẫu con lịch sử (KMP String Search)
     const seq = tx.map(v => (v === "T" ? 1 : 0));
     const maxPatLen = Math.min(9, Math.floor(seq.length / 3));
     for (let len = maxPatLen; len >= 4; len--) {
@@ -205,7 +192,6 @@ class ElitePatterns {
       }
     }
 
-    // 3. Phân bổ các mặt xúc xắc (Quá mua/Quá bán mặt số)
     const recentD = dice.slice(-5);
     let lowFaces = 0, highFaces = 0;
     for (const d of recentD) {
@@ -214,10 +200,9 @@ class ElitePatterns {
         if (val >= 5) highFaces++;
       }
     }
-    if (lowFaces >= 9) return { pred: "tài", conf: 87, src: "Tụ lực mặt nhỏ" };
-    if (highFaces >= 9) return { pred: "xỉu", conf: 87, src: "Tụ lực mặt lớn" };
+    if (lowFaces >= 9) return { pred: "tài", conf: 88, src: "Tụ lực mặt nhỏ" };
+    if (highFaces >= 9) return { pred: "xỉu", conf: 88, src: "Tụ lực mặt lớn" };
 
-    // 4. Động lượng Delta điểm số
     let mom = 0;
     for (let i = 1; i < Math.min(8, totals.length); i++) {
       const delta = totals[totals.length - i] - totals[totals.length - i - 1];
@@ -225,7 +210,7 @@ class ElitePatterns {
       else if (delta <= -3) mom--;
     }
     if (Math.abs(mom) >= 4) {
-      return { pred: mom > 0 ? "xỉu" : "tài", conf: 84 + Math.abs(mom), src: "Động lượng điểm" };
+      return { pred: mom > 0 ? "xỉu" : "tài", conf: 85 + Math.abs(mom), src: "Động lượng điểm" };
     }
 
     return null;
@@ -263,7 +248,6 @@ class CheatGuard {
   }
 }
 
-// --- QUẢN LÝ DỮ LIỆU & FILE LƯU TRỮ ---
 function loadStore() {
   try {
     if (existsSync(STORE_FILE)) return JSON.parse(readFileSync(STORE_FILE, "utf8"));
@@ -277,7 +261,6 @@ function saveStore(s) {
 
 const store = loadStore();
 
-// --- BỘ THEO DÕI THÍCH ỨNG & ĐIỀU CHỈNH TRỌNG SỐ ---
 class Tracker {
   constructor(game) {
     this.game = game;
@@ -315,7 +298,7 @@ class Tracker {
 
   updateWeights(src, delta) {
     const s = src || "";
-    if (s.includes("bệt") || s.includes("1-1") || s.includes("2-2") || s.includes("tiến") || s.includes("gãy")) {
+    if (s.includes("bệt") || s.includes("1-1") || s.includes("2-2") || s.includes("tiến") || s.includes("gãy") || s.includes("nhịp")) {
       this.wBasic = Math.max(0.15, Math.min(0.6, this.wBasic + delta));
     } else if (s.includes("Markov") || s.includes("Chu kỳ") || s.includes("Hồi quy")) {
       this.wAdv = Math.max(0.15, Math.min(0.6, this.wAdv + delta));
@@ -358,12 +341,11 @@ class Tracker {
       streakOk: this.streakOk,
       streakNg: this.streakNg,
       acc20: Math.round(this.recentAcc(20) * 100) + "%",
-      lastOutcomes: this.outcomes.slice(-15).reverse()
+      lastOutcomes: this.outcomes.slice(-20).reverse()
     };
   }
 }
 
-// --- ĐỘNG CƠ XỬ LÝ CHÍNH ---
 class Engine {
   constructor(game, url, parse) {
     this.game = game;
@@ -533,7 +515,6 @@ function checkKey(q) {
   return { ok: true };
 }
 
-// --- BOOTSTRAP FASTIFY SERVER ---
 async function bootstrap() {
   const app = fastify({ logger: false });
   await app.register(cors, { origin: "*" });
