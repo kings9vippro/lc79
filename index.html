@@ -2,194 +2,500 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TX Pro Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>TX QUANTITATIVE ENGINE // v13.0-PRO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#0b0f1a;--card:#12182b;--border:#1e2742;--text:#e8ecf4;--muted:#8b95b0;
-  --tai:#22c55e;--xiu:#ef4444;--accent:#6366f1;--warn:#f59e0b;--ok:#10b981
+  --bg-deep:#05070d;
+  --panel:#0d121f;
+  --panel-border:#1c253d;
+  --accent:#3b82f6;
+  --accent-glow:rgba(59,130,246,0.3);
+  --tai:#10b981;
+  --tai-glow:rgba(16,185,129,0.25);
+  --xiu:#ef4444;
+  --xiu-glow:rgba(239,68,68,0.25);
+  --text-pri:#f1f5f9;
+  --text-sec:#94a3b8;
+  --warn:#f59e0b;
 }
-body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-.wrap{max-width:1200px;margin:0 auto;padding:20px}
-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px}
-header h1{font-size:1.4rem;font-weight:700;letter-spacing:-.02em}
-.badge{font-size:.75rem;padding:4px 10px;border-radius:999px;background:var(--accent);color:#fff}
-.keybox{display:flex;gap:8px;align-items:center}
-.keybox input{background:var(--card);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:10px;width:180px;font-size:.9rem}
-.keybox button{background:var(--accent);color:#fff;border:none;padding:10px 18px;border-radius:10px;font-weight:600;cursor:pointer}
-.keybox button:hover{opacity:.9}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-@media(max-width:800px){.grid{grid-template-columns:1fr}}
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden}
-.card h2{font-size:1.1rem;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.tag{font-size:.7rem;padding:2px 8px;border-radius:6px;background:#1e2742;color:var(--muted)}
-.pred-box{text-align:center;padding:24px 12px;margin:12px 0;border-radius:14px;background:linear-gradient(135deg,#1a2035,#0f1424)}
-.pred-val{font-size:2.6rem;font-weight:800;letter-spacing:-.03em;text-transform:uppercase}
-.pred-val.tai{color:var(--tai)}.pred-val.xiu{color:var(--xiu)}
-.pred-meta{display:flex;justify-content:center;gap:16px;margin-top:10px;font-size:.85rem;color:var(--muted)}
-.conf{font-weight:700;color:var(--text)}
-.last-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
-.stat{background:#0d1220;border-radius:10px;padding:10px;text-align:center}
-.stat .l{font-size:.7rem;color:var(--muted);margin-bottom:4px}
-.stat .v{font-size:1rem;font-weight:700}
-.hist{margin-top:16px}
-.hist h3{font-size:.85rem;color:var(--muted);margin-bottom:8px}
-.row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #1a2035;font-size:.82rem}
-.row:last-child{border:none}
-.dot{width:8px;height:8px;border-radius:50%}
-.dot.T{background:var(--tai)}.dot.X{background:var(--xiu)}
-.ok{color:var(--ok)}.ng{color:var(--xiu)}
-.out-list{max-height:220px;overflow-y:auto}
-.footer{text-align:center;margin-top:28px;color:var(--muted);font-size:.8rem}
-.err{color:var(--xiu);text-align:center;padding:20px}
-.loading{opacity:.6;pointer-events:none}
-.rev{color:var(--warn);font-size:.75rem}
+
+html,body{
+  touch-action:manipulation;
+  background-color:var(--bg-deep);
+  color:var(--text-pri);
+  font-family:'Space Grotesk',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+.mono{font-family:'JetBrains Mono',monospace}
+
+.app-wrapper{
+  max-width:1280px;
+  margin:0 auto;
+  padding:16px;
+}
+
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:12px;
+  padding-bottom:16px;
+  border-bottom:1px solid var(--panel-border);
+  margin-bottom:20px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.brand-icon{
+  width:12px;
+  height:12px;
+  background:var(--accent);
+  border-radius:2px;
+  box-shadow:0 0 10px var(--accent);
+}
+
+.brand h1{
+  font-size:1.15rem;
+  letter-spacing:0.02em;
+  font-weight:800;
+  text-transform:uppercase;
+}
+
+.brand .ver{
+  font-size:0.7rem;
+  background:#1e293b;
+  color:var(--accent);
+  padding:2px 8px;
+  border-radius:4px;
+}
+
+.auth-form{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  width:100%;
+  max-width:380px;
+}
+
+.auth-form input{
+  background:#090d16;
+  border:1px solid var(--panel-border);
+  border-radius:8px;
+  padding:10px 14px;
+  color:var(--text-pri);
+  font-size:16px;
+  outline:none;
+  flex:1;
+  transition:border-color 0.2s ease;
+}
+
+.auth-form input:focus{
+  border-color:var(--accent);
+}
+
+.btn{
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  padding:10px 18px;
+  border-radius:8px;
+  font-weight:700;
+  font-size:0.85rem;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  transition:opacity 0.2s;
+  user-select:none;
+}
+
+.btn:active{transform:scale(0.98)}
+
+.error-banner{
+  background:rgba(239,68,68,0.1);
+  border:1px solid rgba(239,68,68,0.3);
+  color:var(--xiu);
+  padding:12px;
+  border-radius:8px;
+  margin-bottom:16px;
+  font-size:0.85rem;
+  display:none;
+}
+
+.grid-workspace{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(330px,1fr));
+  gap:16px;
+}
+
+.engine-card{
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:12px;
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.5);
+}
+
+.card-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.card-top h2{
+  font-size:0.95rem;
+  font-weight:700;
+  letter-spacing:0.02em;
+}
+
+.chip{
+  font-size:0.7rem;
+  background:#141c2e;
+  border:1px solid #233152;
+  color:var(--text-sec);
+  padding:3px 8px;
+  border-radius:4px;
+}
+
+.display-box{
+  background:linear-gradient(180deg,#070a12 0%,#090e1a 100%);
+  border:1px solid #172138;
+  border-radius:10px;
+  padding:20px 12px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+
+.signal-value{
+  font-size:3rem;
+  font-weight:800;
+  line-height:1;
+  text-transform:uppercase;
+  letter-spacing:-0.03em;
+  filter:drop-shadow(0 0 12px transparent);
+}
+
+.signal-value.tai{
+  color:var(--tai);
+  filter:drop-shadow(0 0 14px var(--tai-glow));
+}
+
+.signal-value.xiu{
+  color:var(--xiu);
+  filter:drop-shadow(0 0 14px var(--xiu-glow));
+}
+
+.display-meta{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+  margin-top:12px;
+  font-size:0.8rem;
+  color:var(--text-sec);
+}
+
+.confidence-rate{
+  font-weight:800;
+  color:var(--text-pri);
+}
+
+.flag{
+  font-size:0.65rem;
+  font-weight:700;
+  padding:2px 6px;
+  border-radius:3px;
+  background:#291e0a;
+  color:var(--warn);
+  border:1px solid #573e0e;
+}
+
+.quick-stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+
+.stat-cell{
+  background:#080b14;
+  border:1px solid #141b2d;
+  border-radius:6px;
+  padding:8px 4px;
+  text-align:center;
+}
+
+.stat-cell .label{
+  font-size:0.65rem;
+  color:var(--text-sec);
+  text-transform:uppercase;
+}
+
+.stat-cell .val{
+  font-size:0.85rem;
+  font-weight:700;
+  margin-top:2px;
+}
+
+.section-label{
+  font-size:0.75rem;
+  font-weight:700;
+  color:var(--text-sec);
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+  display:flex;
+  justify-content:space-between;
+}
+
+.log-container{
+  max-height:160px;
+  overflow-y:auto;
+  border:1px solid #141b2d;
+  border-radius:6px;
+  background:#070a12;
+  padding:4px 0;
+}
+
+.log-container::-webkit-scrollbar{width:4px}
+.log-container::-webkit-scrollbar-thumb{background:#1f293d;border-radius:2px}
+
+.log-row{
+  display:flex;
+  align-items:center;
+  padding:5px 8px;
+  font-size:0.75rem;
+  border-bottom:1px solid #0f1524;
+}
+
+.log-row:last-child{border-bottom:none}
+
+.status-bullet{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  margin-right:8px;
+  flex-shrink:0;
+}
+.status-bullet.T{background:var(--tai);box-shadow:0 0 6px var(--tai)}
+.status-bullet.X{background:var(--xiu);box-shadow:0 0 6px var(--xiu)}
+
+.indicator-pass{color:var(--tai);font-weight:700;margin-right:6px}
+.indicator-fail{color:var(--xiu);font-weight:700;margin-right:6px}
+
+footer{
+  margin-top:24px;
+  padding:16px;
+  text-align:center;
+  font-size:0.75rem;
+  color:var(--text-sec);
+  border-top:1px solid var(--panel-border);
+}
+
+.pulse{
+  animation:neon-pulse 2s infinite ease-in-out;
+}
+@keyframes neon-pulse{
+  0%,100%{opacity:1}
+  50%{opacity:0.4}
+}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="app-wrapper">
   <header>
-    <div>
-      <h1>TX Pro <span class="badge">v12</span></h1>
+    <div class="brand">
+      <div class="brand-icon"></div>
+      <h1>Tx Quantum Engine</h1>
+      <span class="ver mono">v13.0</span>
     </div>
-    <div class="keybox">
-      <input id="key" type="password" placeholder="Nhập key..." autocomplete="off">
-      <button id="go">Kết nối</button>
+    <div class="auth-form">
+      <input type="password" id="access-key" class="mono" placeholder="Input Key Session..." autocomplete="off">
+      <button class="btn" id="btn-sync">CONNECT</button>
     </div>
   </header>
 
-  <div id="err" class="err" style="display:none"></div>
+  <div id="runtime-error" class="error-banner"></div>
 
-  <div class="grid" id="main" style="display:none">
-    <div class="card" id="hu-card">
-      <h2>Tài Xỉu HŨ <span class="tag" id="hu-src">—</span></h2>
-      <div class="pred-box">
-        <div class="pred-val" id="hu-pred">—</div>
-        <div class="pred-meta">
-          <span>Phiên <b id="hu-phien">—</b></span>
-          <span class="conf" id="hu-conf">—</span>
-          <span class="rev" id="hu-rev"></span>
+  <div class="grid-workspace" id="dashboard-grid" style="display:none">
+    <!-- PANEL HU -->
+    <div class="engine-card" id="hu-module">
+      <div class="card-top">
+        <h2>TÀI XỈU TRUYỀN THỐNG</h2>
+        <span class="chip mono" id="hu-algo-src">IDLE</span>
+      </div>
+      <div class="display-box">
+        <div class="signal-value" id="hu-prediction">—</div>
+        <div class="display-meta mono">
+          <span>TARGET: <b id="hu-next-session" style="color:var(--text-pri)">—</b></span>
+          <span>CONF: <b id="hu-confidence" class="confidence-rate">—</b></span>
+          <span id="hu-flags" class="flag" style="display:none">NORMAL</span>
         </div>
       </div>
-      <div class="last-row">
-        <div class="stat"><div class="l">Phiên trước</div><div class="v" id="hu-last-s">—</div></div>
-        <div class="stat"><div class="l">Xúc xắc</div><div class="v" id="hu-dice">—</div></div>
-        <div class="stat"><div class="l">Kết quả</div><div class="v" id="hu-kq">—</div></div>
-        <div class="stat"><div class="l">Acc 20</div><div class="v" id="hu-acc">—</div></div>
+      <div class="quick-stats mono">
+        <div class="stat-cell"><div class="label">Last ID</div><div class="val" id="hu-stat-session">—</div></div>
+        <div class="stat-cell"><div class="label">Dice</div><div class="val" id="hu-stat-dice">—</div></div>
+        <div class="stat-cell"><div class="label">Total</div><div class="val" id="hu-stat-sum">—</div></div>
+        <div class="stat-cell"><div class="label">Acc 20</div><div class="val" id="hu-stat-accuracy">—</div></div>
       </div>
-      <div class="hist">
-        <h3>Lịch sử thắng/thua</h3>
-        <div class="out-list" id="hu-out"></div>
+      <div>
+        <div class="section-label"><span>Backtest Analysis</span><span>STATUS</span></div>
+        <div class="log-container mono" id="hu-verification-logs"></div>
       </div>
-      <div class="hist">
-        <h3>25 phiên gần</h3>
-        <div class="out-list" id="hu-hist"></div>
+      <div>
+        <div class="section-label"><span>Live Data Feed</span><span>DICE/SUM</span></div>
+        <div class="log-container mono" id="hu-feed-logs"></div>
       </div>
     </div>
 
-    <div class="card" id="md5-card">
-      <h2>Tài Xỉu MD5 <span class="tag" id="md5-src">—</span></h2>
-      <div class="pred-box">
-        <div class="pred-val" id="md5-pred">—</div>
-        <div class="pred-meta">
-          <span>Phiên <b id="md5-phien">—</b></span>
-          <span class="conf" id="md5-conf">—</span>
-          <span class="rev" id="md5-rev"></span>
+    <!-- PANEL MD5 -->
+    <div class="engine-card" id="md5-module">
+      <div class="card-top">
+        <h2>TÀI XỈU MD5 QUANT</h2>
+        <span class="chip mono" id="md5-algo-src">IDLE</span>
+      </div>
+      <div class="display-box">
+        <div class="signal-value" id="md5-prediction">—</div>
+        <div class="display-meta mono">
+          <span>TARGET: <b id="md5-next-session" style="color:var(--text-pri)">—</b></span>
+          <span>CONF: <b id="md5-confidence" class="confidence-rate">—</b></span>
+          <span id="md5-flags" class="flag" style="display:none">NORMAL</span>
         </div>
       </div>
-      <div class="last-row">
-        <div class="stat"><div class="l">Phiên trước</div><div class="v" id="md5-last-s">—</div></div>
-        <div class="stat"><div class="l">Xúc xắc</div><div class="v" id="md5-dice">—</div></div>
-        <div class="stat"><div class="l">Kết quả</div><div class="v" id="md5-kq">—</div></div>
-        <div class="stat"><div class="l">Acc 20</div><div class="v" id="md5-acc">—</div></div>
+      <div class="quick-stats mono">
+        <div class="stat-cell"><div class="label">Last ID</div><div class="val" id="md5-stat-session">—</div></div>
+        <div class="stat-cell"><div class="label">Dice</div><div class="val" id="md5-stat-dice">—</div></div>
+        <div class="stat-cell"><div class="label">Total</div><div class="val" id="md5-stat-sum">—</div></div>
+        <div class="stat-cell"><div class="label">Acc 20</div><div class="val" id="md5-stat-accuracy">—</div></div>
       </div>
-      <div class="hist">
-        <h3>Lịch sử thắng/thua</h3>
-        <div class="out-list" id="md5-out"></div>
+      <div>
+        <div class="section-label"><span>Backtest Analysis</span><span>STATUS</span></div>
+        <div class="log-container mono" id="md5-verification-logs"></div>
       </div>
-      <div class="hist">
-        <h3>25 phiên gần</h3>
-        <div class="out-list" id="md5-hist"></div>
+      <div>
+        <div class="section-label"><span>Live Data Feed</span><span>DICE/SUM</span></div>
+        <div class="log-container mono" id="md5-feed-logs"></div>
       </div>
     </div>
   </div>
 
-  <div class="footer">TX Pro · Auto refresh 8s</div>
+  <footer class="mono">TX-PRO ENGINE CORE // REVERSE-ENGINEERED 2026 // SYNC INTERVAL: 4000ms</footer>
 </div>
+
 <script>
 const $ = id => document.getElementById(id);
-let key = localStorage.getItem("tx_key") || "";
-let timer = null;
+let engineKey = localStorage.getItem("tx_engine_key") || "";
+let syncTimer = null;
 
-$("key").value = key;
+if (engineKey) $("access-key").value = engineKey;
 
-function renderSide(prefix, data) {
-  if (!data) return;
-  const p = data.prediction;
-  const last = data.last;
-  if (p) {
-    const el = $(prefix + "-pred");
-    el.textContent = p.pred;
-    el.className = "pred-val " + (p.pred === "tài" ? "tai" : "xiu");
-    $(prefix + "-phien").textContent = p.session;
-    $(prefix + "-conf").textContent = p.conf + "%";
-    $(prefix + "-src").textContent = p.src || "—";
-    $(prefix + "-rev").textContent = p.reverse ? "REV" : (p.cheat ? "GUARD" : "");
+function renderTelemetry(domain, node) {
+  if (!node) return;
+  const pred = node.prediction;
+  const last = node.last;
+
+  if (pred) {
+    const predEl = $(`${domain}-prediction`);
+    predEl.textContent = pred.pred;
+    predEl.className = `signal-value ${pred.pred === "tài" ? "tai" : "xiu"}`;
+    $(`${domain}-next-session`).textContent = `#${pred.session}`;
+    $(`${domain}-confidence`).textContent = `${pred.conf}%`;
+    $(`${domain}-algo-src`).textContent = pred.src || "MARKOV-AUTO";
+
+    const flagsEl = $(`${domain}-flags`);
+    if (pred.reverse || pred.cheat) {
+      flagsEl.style.display = "inline-block";
+      flagsEl.textContent = pred.reverse ? "INVERTED" : "GUARD";
+    } else {
+      flagsEl.style.display = "none";
+    }
   }
+
   if (last) {
-    $(prefix + "-last-s").textContent = last.session;
-    $(prefix + "-dice").textContent = last.dice.join("-");
-    $(prefix + "-kq").textContent = last.result;
+    $(`${domain}-stat-session`).textContent = last.session;
+    $(`${domain}-stat-dice`).textContent = last.dice.join(",");
+    $(`${domain}-stat-sum`).textContent = `${last.total} (${last.result.toUpperCase()})`;
   }
-  $(prefix + "-acc").textContent = data.acc20 || "—";
 
-  const outEl = $(prefix + "-out");
-  outEl.innerHTML = (data.outcomes || []).map(o =>
-    `<div class="row"><span class="${o.ok ? "ok" : "ng"}">${o.ok ? "✓" : "✗"}</span>
-     <span>#${o.session}</span>
-     <span>${o.pred}→${o.actual}</span>
-     <span style="color:var(--muted);margin-left:auto">${o.src||""}</span></div>`
-  ).join("") || '<div class="row" style="color:var(--muted)">Chưa có dữ liệu</div>';
+  $(`${domain}-stat-accuracy`).textContent = node.acc20 || "0%";
 
-  const histEl = $(prefix + "-hist");
-  histEl.innerHTML = (data.history || []).map(h =>
-    `<div class="row"><span class="dot ${h.tx}"></span>
-     <span>#${h.s}</span>
-     <span>${h.d.join("-")}</span>
-     <span>${h.t}</span>
-     <span style="margin-left:auto">${h.r}</span></div>`
-  ).join("") || "";
+  const vLogs = $(`${domain}-verification-logs`);
+  vLogs.innerHTML = (node.outcomes || []).map(o => `
+    <div class="log-row">
+      <span class="${o.ok ? 'indicator-pass' : 'indicator-fail'}">${o.ok ? '[OK]' : '[NG]'}</span>
+      <span>#${o.session}</span>
+      <span style="margin:0 6px">${o.pred.toUpperCase()} → ${o.actual.toUpperCase()}</span>
+      <span style="color:var(--text-sec);margin-left:auto">${o.src || ''}</span>
+    </div>
+  `).join("") || '<div class="log-row" style="color:var(--text-sec)">No execution history.</div>';
+
+  const fLogs = $(`${domain}-feed-logs`);
+  fLogs.innerHTML = (node.history || []).map(h => `
+    <div class="log-row">
+      <span class="status-bullet ${h.tx}"></span>
+      <span>#${h.s}</span>
+      <span style="margin-left:12px;color:var(--text-sec)">[${h.d.join(",")}]</span>
+      <span style="margin-left:auto;font-weight:700">${h.t} ${h.r.toUpperCase()}</span>
+    </div>
+  `).join("") || "";
 }
 
-async function load() {
-  key = $("key").value.trim();
-  if (!key) { $("err").style.display="block"; $("err").textContent="Nhập key"; return; }
-  localStorage.setItem("tx_key", key);
-  $("main").classList.add("loading");
+async function syncTelemetry() {
+  engineKey = $("access-key").value.trim();
+  const errBox = $("runtime-error");
+  if (!engineKey) {
+    errBox.textContent = "CRITICAL: Key required to establish secure pipeline.";
+    errBox.style.display = "block";
+    return;
+  }
+
+  localStorage.setItem("tx_engine_key", engineKey);
+
   try {
-    const r = await fetch("/api/dashboard?key=" + encodeURIComponent(key));
-    const j = await r.json();
-    if (!r.ok) {
-      $("err").style.display="block";
-      $("err").textContent = j.error || "Lỗi";
-      $("main").style.display="none";
+    const res = await fetch(`/api/dashboard?key=${encodeURIComponent(engineKey)}`);
+    const payload = await res.json();
+
+    if (!res.ok) {
+      errBox.textContent = payload.error || "RUNTIME_EXCEPTION: Pipeline Handshake Rejected.";
+      errBox.style.display = "block";
+      $("dashboard-grid").style.display = "none";
       return;
     }
-    $("err").style.display="none";
-    $("main").style.display="grid";
-    renderSide("hu", j.hu);
-    renderSide("md5", j.md5);
-  } catch(e) {
-    $("err").style.display="block";
-    $("err").textContent="Không kết nối được server";
-  } finally {
-    $("main").classList.remove("loading");
+
+    errBox.style.display = "none";
+    $("dashboard-grid").style.display = "grid";
+    renderTelemetry("hu", payload.hu);
+    renderTelemetry("md5", payload.md5);
+  } catch (err) {
+    errBox.textContent = "SYSTEM_FAULT: Pipeline disconnected. Retrying...";
+    errBox.style.display = "block";
   }
 }
 
-$("go").onclick = () => { load(); if(timer) clearInterval(timer); timer = setInterval(load, 8000); };
-if (key) { load(); timer = setInterval(load, 8000); }
+$("btn-sync").onclick = () => {
+  syncTelemetry();
+  if (syncTimer) clearInterval(syncTimer);
+  syncTimer = setInterval(syncTelemetry, 4000);
+};
+
+if (engineKey) {
+  syncTelemetry();
+  syncTimer = setInterval(syncTelemetry, 4000);
+}
 </script>
 </body>
 </html>
