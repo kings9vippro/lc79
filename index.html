@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TX Pro Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0f1a;--card:#12182b;--border:#1e2742;--text:#e8ecf4;--muted:#8b95b0;
+  --tai:#22c55e;--xiu:#ef4444;--accent:#6366f1;--warn:#f59e0b;--ok:#10b981
+}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.wrap{max-width:1200px;margin:0 auto;padding:20px}
+header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px}
+header h1{font-size:1.4rem;font-weight:700;letter-spacing:-.02em}
+.badge{font-size:.75rem;padding:4px 10px;border-radius:999px;background:var(--accent);color:#fff}
+.keybox{display:flex;gap:8px;align-items:center}
+.keybox input{background:var(--card);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:10px;width:180px;font-size:.9rem}
+.keybox button{background:var(--accent);color:#fff;border:none;padding:10px 18px;border-radius:10px;font-weight:600;cursor:pointer}
+.keybox button:hover{opacity:.9}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden}
+.card h2{font-size:1.1rem;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.tag{font-size:.7rem;padding:2px 8px;border-radius:6px;background:#1e2742;color:var(--muted)}
+.pred-box{text-align:center;padding:24px 12px;margin:12px 0;border-radius:14px;background:linear-gradient(135deg,#1a2035,#0f1424)}
+.pred-val{font-size:2.6rem;font-weight:800;letter-spacing:-.03em;text-transform:uppercase}
+.pred-val.tai{color:var(--tai)}.pred-val.xiu{color:var(--xiu)}
+.pred-meta{display:flex;justify-content:center;gap:16px;margin-top:10px;font-size:.85rem;color:var(--muted)}
+.conf{font-weight:700;color:var(--text)}
+.last-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.stat{background:#0d1220;border-radius:10px;padding:10px;text-align:center}
+.stat .l{font-size:.7rem;color:var(--muted);margin-bottom:4px}
+.stat .v{font-size:1rem;font-weight:700}
+.hist{margin-top:16px}
+.hist h3{font-size:.85rem;color:var(--muted);margin-bottom:8px}
+.row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #1a2035;font-size:.82rem}
+.row:last-child{border:none}
+.dot{width:8px;height:8px;border-radius:50%}
+.dot.T{background:var(--tai)}.dot.X{background:var(--xiu)}
+.ok{color:var(--ok)}.ng{color:var(--xiu)}
+.out-list{max-height:220px;overflow-y:auto}
+.footer{text-align:center;margin-top:28px;color:var(--muted);font-size:.8rem}
+.err{color:var(--xiu);text-align:center;padding:20px}
+.loading{opacity:.6;pointer-events:none}
+.rev{color:var(--warn);font-size:.75rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>TX Pro <span class="badge">v12</span></h1>
+    </div>
+    <div class="keybox">
+      <input id="key" type="password" placeholder="Nhập key..." autocomplete="off">
+      <button id="go">Kết nối</button>
+    </div>
+  </header>
+
+  <div id="err" class="err" style="display:none"></div>
+
+  <div class="grid" id="main" style="display:none">
+    <div class="card" id="hu-card">
+      <h2>Tài Xỉu HŨ <span class="tag" id="hu-src">—</span></h2>
+      <div class="pred-box">
+        <div class="pred-val" id="hu-pred">—</div>
+        <div class="pred-meta">
+          <span>Phiên <b id="hu-phien">—</b></span>
+          <span class="conf" id="hu-conf">—</span>
+          <span class="rev" id="hu-rev"></span>
+        </div>
+      </div>
+      <div class="last-row">
+        <div class="stat"><div class="l">Phiên trước</div><div class="v" id="hu-last-s">—</div></div>
+        <div class="stat"><div class="l">Xúc xắc</div><div class="v" id="hu-dice">—</div></div>
+        <div class="stat"><div class="l">Kết quả</div><div class="v" id="hu-kq">—</div></div>
+        <div class="stat"><div class="l">Acc 20</div><div class="v" id="hu-acc">—</div></div>
+      </div>
+      <div class="hist">
+        <h3>Lịch sử thắng/thua</h3>
+        <div class="out-list" id="hu-out"></div>
+      </div>
+      <div class="hist">
+        <h3>25 phiên gần</h3>
+        <div class="out-list" id="hu-hist"></div>
+      </div>
+    </div>
+
+    <div class="card" id="md5-card">
+      <h2>Tài Xỉu MD5 <span class="tag" id="md5-src">—</span></h2>
+      <div class="pred-box">
+        <div class="pred-val" id="md5-pred">—</div>
+        <div class="pred-meta">
+          <span>Phiên <b id="md5-phien">—</b></span>
+          <span class="conf" id="md5-conf">—</span>
+          <span class="rev" id="md5-rev"></span>
+        </div>
+      </div>
+      <div class="last-row">
+        <div class="stat"><div class="l">Phiên trước</div><div class="v" id="md5-last-s">—</div></div>
+        <div class="stat"><div class="l">Xúc xắc</div><div class="v" id="md5-dice">—</div></div>
+        <div class="stat"><div class="l">Kết quả</div><div class="v" id="md5-kq">—</div></div>
+        <div class="stat"><div class="l">Acc 20</div><div class="v" id="md5-acc">—</div></div>
+      </div>
+      <div class="hist">
+        <h3>Lịch sử thắng/thua</h3>
+        <div class="out-list" id="md5-out"></div>
+      </div>
+      <div class="hist">
+        <h3>25 phiên gần</h3>
+        <div class="out-list" id="md5-hist"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">TX Pro · Auto refresh 8s</div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+let key = localStorage.getItem("tx_key") || "";
+let timer = null;
+
+$("key").value = key;
+
+function renderSide(prefix, data) {
+  if (!data) return;
+  const p = data.prediction;
+  const last = data.last;
+  if (p) {
+    const el = $(prefix + "-pred");
+    el.textContent = p.pred;
+    el.className = "pred-val " + (p.pred === "tài" ? "tai" : "xiu");
+    $(prefix + "-phien").textContent = p.session;
+    $(prefix + "-conf").textContent = p.conf + "%";
+    $(prefix + "-src").textContent = p.src || "—";
+    $(prefix + "-rev").textContent = p.reverse ? "REV" : (p.cheat ? "GUARD" : "");
+  }
+  if (last) {
+    $(prefix + "-last-s").textContent = last.session;
+    $(prefix + "-dice").textContent = last.dice.join("-");
+    $(prefix + "-kq").textContent = last.result;
+  }
+  $(prefix + "-acc").textContent = data.acc20 || "—";
+
+  const outEl = $(prefix + "-out");
+  outEl.innerHTML = (data.outcomes || []).map(o =>
+    `<div class="row"><span class="${o.ok ? "ok" : "ng"}">${o.ok ? "✓" : "✗"}</span>
+     <span>#${o.session}</span>
+     <span>${o.pred}→${o.actual}</span>
+     <span style="color:var(--muted);margin-left:auto">${o.src||""}</span></div>`
+  ).join("") || '<div class="row" style="color:var(--muted)">Chưa có dữ liệu</div>';
+
+  const histEl = $(prefix + "-hist");
+  histEl.innerHTML = (data.history || []).map(h =>
+    `<div class="row"><span class="dot ${h.tx}"></span>
+     <span>#${h.s}</span>
+     <span>${h.d.join("-")}</span>
+     <span>${h.t}</span>
+     <span style="margin-left:auto">${h.r}</span></div>`
+  ).join("") || "";
+}
+
+async function load() {
+  key = $("key").value.trim();
+  if (!key) { $("err").style.display="block"; $("err").textContent="Nhập key"; return; }
+  localStorage.setItem("tx_key", key);
+  $("main").classList.add("loading");
+  try {
+    const r = await fetch("/api/dashboard?key=" + encodeURIComponent(key));
+    const j = await r.json();
+    if (!r.ok) {
+      $("err").style.display="block";
+      $("err").textContent = j.error || "Lỗi";
+      $("main").style.display="none";
+      return;
+    }
+    $("err").style.display="none";
+    $("main").style.display="grid";
+    renderSide("hu", j.hu);
+    renderSide("md5", j.md5);
+  } catch(e) {
+    $("err").style.display="block";
+    $("err").textContent="Không kết nối được server";
+  } finally {
+    $("main").classList.remove("loading");
+  }
+}
+
+$("go").onclick = () => { load(); if(timer) clearInterval(timer); timer = setInterval(load, 8000); };
+if (key) { load(); timer = setInterval(load, 8000); }
+</script>
+</body>
+</html>
