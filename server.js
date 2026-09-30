@@ -7,7 +7,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3000;
-const VALID_KEY = Buffer.from("ZG9jcmFja2hpaGk=", "base64").toString("utf8");
+const VALID_KEY = "anhkhoi_xabc2102";
 const DATA_DIR = path.join(__dirname, "data");
 const STORE_FILE = path.join(DATA_DIR, "store.json");
 
@@ -18,7 +18,7 @@ if (!existsSync(DATA_DIR)) {
   try { mkdirSync(DATA_DIR, { recursive: true }); } catch {}
 }
 
-// --- TOÁN HỌC ĐỊNH LƯỢNG CAO CẤP ---
+// --- CÁC HÀM TÍNH TOÁN ĐỊNH LƯỢNG CHUẨN ---
 const avg = arr => (arr && arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : 0);
 const std = arr => {
   if (!arr || arr.length < 2) return 0;
@@ -48,7 +48,7 @@ const streakLen = tx => {
   return s;
 };
 
-// --- QUẢN LÝ DỮ LIỆU ĐỒNG BỘ TRÁNH MẤT PHIÊN ---
+// --- BẢO TOÀN DỮ LIỆU ĐỒNG BỘ ---
 function loadStore() {
   try {
     if (existsSync(STORE_FILE)) {
@@ -68,47 +68,54 @@ function saveStore(s) {
 
 const store = loadStore();
 
-// --- TẦNG 1: QUY LUẬT HÌNH THÁI DÒNG TIỀN (TREND ENGINE) ---
+// --- TẦNG 1: THUẬT TOÁN HÌNH THÁI DÒNG TIỀN ---
 class PatternEngine {
   get(tx) {
     if (!tx || tx.length < 4) return null;
     const last = tx[tx.length - 1];
     const s = streakLen(tx);
 
-    if (s >= 8) return { pred: last === "T" ? "xỉu" : "tài", conf: 92, src: `Bẻ bệt sâu (${s} tay)` };
-    if (s >= 6) return { pred: last === "T" ? "xỉu" : "tài", conf: 88, src: `Bẻ bệt ngưỡng (${s} tay)` };
+    // Bệt sâu & bão hòa
+    if (s >= 8) return { pred: last === "T" ? "xỉu" : "tài", conf: 93, src: `Bẻ bệt sâu (${s} tay)` };
+    if (s >= 6) return { pred: last === "T" ? "xỉu" : "tài", conf: 89, src: `Bẻ bệt bão hòa (${s} tay)` };
     if (s >= 3 && s < 6) return { pred: last === "T" ? "tài" : "xỉu", conf: 85 + (s - 3) * 2, src: `Đu sóng bệt (${s} tay)` };
 
+    // Cầu đảo 1-1
     const last6 = tx.slice(-6);
     if (last6.length === 6 && last6.every((v, i) => i === 0 || v !== last6[i - 1])) {
       return { pred: last === "T" ? "xỉu" : "tài", conf: 89, src: "Bắt nhịp đảo 1-1" };
     }
 
+    // Cầu đôi 2-2
     const last4 = tx.slice(-4);
     if (last4[0] === last4[1] && last4[2] === last4[3] && last4[0] !== last4[2]) {
-      return { pred: last4[3] === "T" ? "xỉu" : "tài", conf: 85, src: "Khóa cầu đôi 2-2" };
+      return { pred: last4[3] === "T" ? "xỉu" : "tài", conf: 86, src: "Cầu song hành 2-2" };
     }
 
+    // Cầu 3-2-1 & 1-2-3
     const seq6 = tx.slice(-6).join("");
-    if (seq6 === "TTTXXT" || seq6 === "XXXTTX") return { pred: last === "T" ? "tài" : "xỉu", conf: 87, src: "Cầu gãy 3-2-1" };
-    if (seq6 === "TXXTTT" || seq6 === "XTTXXX") return { pred: last === "T" ? "xỉu" : "tài", conf: 87, src: "Cầu tiến 1-2-3" };
+    if (seq6 === "TTTXXT" || seq6 === "XXXTTX") return { pred: last === "T" ? "tài" : "xỉu", conf: 88, src: "Cầu gãy 3-2-1" };
+    if (seq6 === "TXXTTT" || seq6 === "XTTXXX") return { pred: last === "T" ? "xỉu" : "tài", conf: 88, src: "Cầu tiến 1-2-3" };
 
+    // Cầu kẹp 2-1-2
     const last5 = tx.slice(-5).join("");
-    if (last5 === "TTXTT" || last5 === "XXTXX") return { pred: last === "T" ? "xỉu" : "tài", conf: 84, src: "Cầu kẹp 2-1-2" };
+    if (last5 === "TTXTT" || last5 === "XXTXX") return { pred: last === "T" ? "xỉu" : "tài", conf: 85, src: "Cầu kẹp 2-1-2" };
 
+    // Nhịp 3-1 & 1-3
     const last4Seq = tx.slice(-4).join("");
-    if (last4Seq === "TTTX" || last4Seq === "XXXT") return { pred: last === "T" ? "xỉu" : "tài", conf: 83, src: "Cầu nhịp 3-1" };
-    if (last4Seq === "TXXX" || last4Seq === "XTTT") return { pred: last === "T" ? "tài" : "xỉu", conf: 83, src: "Cầu nhịp 1-3" };
+    if (last4Seq === "TTTX" || last4Seq === "XXXT") return { pred: last === "T" ? "xỉu" : "tài", conf: 84, src: "Cầu nhịp 3-1" };
+    if (last4Seq === "TXXX" || last4Seq === "XTTT") return { pred: last === "T" ? "tài" : "xỉu", conf: 84, src: "Cầu nhịp 1-3" };
 
     return null;
   }
 }
 
-// --- TẦNG 2: XÁC SUẤT MARKOV K3 & HỒI QUY GAUSS (STATISTICAL ENGINE) ---
+// --- TẦNG 2: THUẬT TOÁN XÁC SUẤT MARKOV K3 & ĐỈNH ĐÁY GAUSS ---
 class StatisticalEngine {
   get(tx, totals) {
     if (!tx || tx.length < 10) return null;
 
+    // 1. Markov bậc 3 có trọng số Dirichlet
     if (tx.length >= 16) {
       const state3 = tx.slice(-3).join("");
       const counts = { T: 0, X: 0 };
@@ -120,11 +127,12 @@ class StatisticalEngine {
       const sum = counts.T + counts.X;
       if (sum >= 3) {
         const probT = (counts.T + 1) / (sum + 2);
-        if (probT >= 0.67) return { pred: "tài", conf: Math.round(78 + probT * 17), src: "Markov K3 phân phối" };
-        if (probT <= 0.33) return { pred: "xỉu", conf: Math.round(78 + (1 - probT) * 17), src: "Markov K3 phân phối" };
+        if (probT >= 0.67) return { pred: "tài", conf: Math.round(79 + probT * 16), src: "Markov K3 xác suất cao" };
+        if (probT <= 0.33) return { pred: "xỉu", conf: Math.round(79 + (1 - probT) * 16), src: "Markov K3 xác suất cao" };
       }
     }
 
+    // 2. Quét bước sóng chu kỳ Lag 2-10
     let bestC = 0, bestS = 0;
     for (let c = 2; c <= 10; c++) {
       let match = 0, count = 0;
@@ -147,19 +155,20 @@ class StatisticalEngine {
       };
     }
 
+    // 3. Chuẩn hóa phân phối Gauss cho 3 xúc xắc (Mean=10.5, Std=2.96)
     if (totals && totals.length >= 12) {
-      const windowD = totals.slice(-6);
-      const m = avg(windowD);
-      const zScore = (m - 10.5) / (std(windowD) || 1.2);
-      if (zScore >= 1.75) return { pred: "xỉu", conf: 89, src: "Đỉnh điểm chuẩn Gauss" };
-      if (zScore <= -1.75) return { pred: "tài", conf: 89, src: "Đáy điểm chuẩn Gauss" };
+      const recentWindow = totals.slice(-6);
+      const m = avg(recentWindow);
+      const zScore = (m - 10.5) / 2.96;
+      if (zScore >= 1.70) return { pred: "xỉu", conf: 90, src: "Đỉnh điểm chuẩn Gauss" };
+      if (zScore <= -1.70) return { pred: "tài", conf: 90, src: "Đáy điểm chuẩn Gauss" };
     }
 
     return null;
   }
 }
 
-// --- TẦNG 3: ENTROPY, KMP SEARCH & COMBINATORICS (VIP ELITE ENGINE) ---
+// --- TẦNG 3: ENTROPY, KMP & TỔ HỢP MẶT XÍ NGẦU VIP ---
 class EliteQuantEngine {
   get(history) {
     if (!history || history.length < 12) return null;
@@ -167,12 +176,14 @@ class EliteQuantEngine {
     const totals = history.map(h => h.total);
     const dice = history.map(h => h.dice);
 
+    // 1. Phân tích Shannon Entropy
     const e16 = entropy(tx.slice(-16));
     if (e16 < 0.28) {
       const last = tx[tx.length - 1];
       return { pred: last === "T" ? "xỉu" : "tài", conf: 94, src: "Bão hòa Entropy" };
     }
 
+    // 2. Đối sánh chuỗi KMP sâu
     const seq = tx.map(v => (v === "T" ? 1 : 0));
     const maxPatLen = Math.min(10, Math.floor(seq.length / 3));
     for (let len = maxPatLen; len >= 4; len--) {
@@ -191,12 +202,13 @@ class EliteQuantEngine {
       if (nxt !== null && hits >= 2) {
         return {
           pred: nxt === 1 ? "tài" : "xỉu",
-          conf: Math.min(97, 82 + len * 2 + hits),
-          src: `Đối sánh KMP (${len} nhịp)`
+          conf: Math.min(97, 83 + len * 2 + hits),
+          src: `Trùng khớp lịch sử (${len} nhịp)`
         };
       }
     }
 
+    // 3. Tụ lực bề mặt xúc xắc
     const recentDice = dice.slice(-5);
     let lowFaces = 0, highFaces = 0;
     for (const d of recentDice) {
@@ -205,9 +217,10 @@ class EliteQuantEngine {
         if (val >= 5) highFaces++;
       }
     }
-    if (lowFaces >= 9) return { pred: "tài", conf: 90, src: "Tụ lực mặt nhỏ" };
-    if (highFaces >= 9) return { pred: "xỉu", conf: 90, src: "Tụ lực mặt lớn" };
+    if (lowFaces >= 9) return { pred: "tài", conf: 91, src: "Tụ lực mặt nhỏ (1-2)" };
+    if (highFaces >= 9) return { pred: "xỉu", conf: 91, src: "Tụ lực mặt lớn (5-6)" };
 
+    // 4. Động lượng xung lực điểm số
     let mom = 0;
     for (let i = 1; i < Math.min(8, totals.length); i++) {
       const delta = totals[totals.length - i] - totals[totals.length - i - 1];
@@ -215,14 +228,14 @@ class EliteQuantEngine {
       else if (delta <= -3) mom--;
     }
     if (Math.abs(mom) >= 4) {
-      return { pred: mom > 0 ? "xỉu" : "tài", conf: 86 + Math.abs(mom), src: "Động lượng xung lực" };
+      return { pred: mom > 0 ? "xỉu" : "tài", conf: 86 + Math.abs(mom), src: "Động lượng điểm số" };
     }
 
     return null;
   }
 }
 
-// --- BỘ LỌC PHÁT HIỆN BẪY BÃO SỐ ---
+// --- BỘ LỌC BẪY CẦU & BÃO SỐ ---
 class RiskGuard {
   constructor() {
     this.prob = 0;
@@ -330,7 +343,7 @@ class AdaptiveTracker {
   }
 }
 
-// --- ENGINE ĐIỀU PHỐI HELIX TRUNG TÂM ---
+// --- ENGINE ĐIỀU HÀNH HELIX TRUNG TÂM ---
 class HelixEngine {
   constructor(game, url, parse) {
     this.game = game;
@@ -409,6 +422,7 @@ class HelixEngine {
     if (this.history.length < 8) return null;
     const nextSession = (this.history.at(-1)?.session || 0) + 1;
 
+    // Giữ nguyên phiên hiện tại nếu đã tạo
     if (this.activePred && this.activePred.session === nextSession) {
       return this.activePred;
     }
@@ -564,7 +578,7 @@ async function bootstrap() {
 
   try {
     await app.listen({ port: PORT, host: "0.0.0.0" });
-    console.log(`[HELIX-ENGINE] Server listening on port :${PORT}`);
+    console.log(`[HELIX-VIP] Khởi động thành công trên cổng :${PORT}`);
   } catch (err) {
     console.error(err);
     process.exit(1);
