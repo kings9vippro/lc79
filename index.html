@@ -3,258 +3,829 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>HELIX</title>
+<title>HELIX // HỆ THỐNG ĐỊNH LƯỢNG THỰC CHIẾN</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#030712;--card:#0a0f1c;--border:#1a2744;--accent:#3b82f6;
-  --tai:#10b981;--tai-g:rgba(16,185,129,.4);--xiu:#f43f5e;--xiu-g:rgba(244,63,94,.4);
-  --txt:#f1f5f9;--muted:#64748b;--warn:#f59e0b;--r:16px;
+  --bg-main:#030712;
+  --panel-bg:rgba(12,18,34,0.85);
+  --panel-border:rgba(255,255,255,0.08);
+  --panel-border-hover:rgba(59,130,246,0.35);
+  --accent:#3b82f6;
+  --accent-glow:rgba(59,130,246,0.4);
+  --tai:#10b981;
+  --tai-glow:rgba(16,185,129,0.35);
+  --xiu:#f43f5e;
+  --xiu-glow:rgba(244,63,94,0.35);
+  --txt-main:#f8fafc;
+  --txt-sub:#94a3b8;
+  --warn:#f59e0b;
 }
-html,body{touch-action:manipulation;background:var(--bg);color:var(--txt);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+
+html,body{
+  touch-action:manipulation;
+  background-color:var(--bg-main);
+  color:var(--txt-main);
+  font-family:'Plus Jakarta Sans',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
 .mono{font-family:'JetBrains Mono',monospace}
-.wrap{max-width:1280px;margin:0 auto;padding:12px}
-header{background:rgba(10,15,28,.9);backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:20px;padding:14px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
-.brand{display:flex;align-items:center;gap:14px}
-.logo-box{width:52px;height:52px;border-radius:14px;background:#050914;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
-.logo-box img{max-width:100%;max-height:100%;object-fit:contain;display:none}
-.logo-def{display:flex;align-items:center;justify-content:center}
-.logo-def svg{width:28px;height:28px}
-.brand h1{font-size:1.25rem;font-weight:800;letter-spacing:.04em;background:linear-gradient(135deg,#fff,#93c5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.brand .sub{font-size:.7rem;font-weight:700;color:#38bdf8;display:block;margin-top:1px}
-.tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;flex:1;justify-content:flex-end}
-.inp{background:#050914;border:1px solid var(--border);border-radius:12px;padding:10px 14px;color:var(--txt);font-size:15px;outline:none;transition:.2s}
-.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.25)}
-.inp-logo{min-width:200px;flex:1;max-width:320px}
-.inp-key{width:150px}
-.btn{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;padding:10px 20px;border-radius:12px;font-weight:800;font-size:.82rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(37,99,235,.35);transition:.15s}
-.btn:active{transform:scale(.96)}
-.btn svg{width:16px;height:16px}
-.err{background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.3);color:var(--xiu);padding:11px 14px;border-radius:14px;margin-bottom:14px;font-size:.82rem;display:none}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:14px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
-.card-h{display:flex;justify-content:space-between;align-items:center}
-.card-h h2{font-size:1rem;font-weight:800}
-.tag{font-size:.7rem;background:#0d182e;border:1px solid #1e335a;color:#93c5fd;padding:4px 10px;border-radius:8px;font-weight:700}
-.pred-box{background:radial-gradient(circle at 50% 30%,#0d152b 0%,#060914 100%);border:1px solid #182845;border-radius:16px;padding:22px 14px;text-align:center}
-.pred{font-size:3.6rem;font-weight:900;line-height:1;letter-spacing:-.03em;text-transform:uppercase}
-.pred.tai{color:var(--tai);filter:drop-shadow(0 0 18px var(--tai-g))}
-.pred.xiu{color:var(--xiu);filter:drop-shadow(0 0 18px var(--xiu-g))}
-.meta{display:flex;justify-content:center;align-items:center;gap:14px;margin-top:12px;font-size:.85rem;color:var(--muted)}
-.badge{font-size:.65rem;font-weight:800;padding:3px 9px;border-radius:6px;background:#261805;color:var(--warn);border:1px solid #57390c}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.st{background:#050914;border:1px solid #142035;border-radius:12px;padding:9px 4px;text-align:center}
-.st .l{font-size:.65rem;color:var(--muted);text-transform:uppercase;font-weight:700}
-.st .v{font-size:.9rem;font-weight:800;margin-top:2px}
-.sec-t{font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;display:flex;justify-content:space-between;margin-bottom:6px}
-.scroll{max-height:160px;overflow-y:auto;border:1px solid #142035;border-radius:12px;background:#050914;padding:3px 0}
-.scroll::-webkit-scrollbar{width:3px}
-.scroll::-webkit-scrollbar-thumb{background:#1e3152;border-radius:2px}
-.row{display:flex;align-items:center;padding:7px 11px;font-size:.75rem;border-bottom:1px solid #0c1526}
-.row:last-child{border-bottom:none}
-.dot{width:7px;height:7px;border-radius:50%;margin-right:9px;flex-shrink:0}
-.dot.T{background:var(--tai);box-shadow:0 0 6px var(--tai)}
-.dot.X{background:var(--xiu);box-shadow:0 0 6px var(--xiu)}
-.ok{color:var(--tai);font-weight:800;background:rgba(16,185,129,.12);padding:2px 5px;border-radius:4px;margin-right:7px}
-.ng{color:var(--xiu);font-weight:800;background:rgba(244,63,94,.12);padding:2px 5px;border-radius:4px;margin-right:7px}
-footer{margin-top:20px;padding:14px;text-align:center;font-size:.72rem;color:var(--muted);border-top:1px solid var(--border)}
+
+.container{
+  max-width:1340px;
+  margin:0 auto;
+  padding:14px;
+}
+
+/* HEADER COMPACT & BO GÓC MỀM */
+header{
+  background:var(--panel-bg);
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  border:1px solid var(--panel-border);
+  border-radius:22px;
+  padding:14px 20px;
+  margin-bottom:16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:14px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+}
+
+.brand-section{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+/* KHUNG LOGO BASE64 HIỂN THỊ FULL 100% */
+.logo-viewport{
+  min-width:54px;
+  max-width:180px;
+  height:52px;
+  padding:4px 8px;
+  border-radius:14px;
+  background:#070c18;
+  border:1px solid var(--panel-border);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+
+.logo-viewport img{
+  max-width:100%;
+  max-height:100%;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+  display:none;
+}
+
+.logo-default{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#fff;
+  font-weight:800;
+  font-size:1.15rem;
+  letter-spacing:0.04em;
+}
+
+.logo-default svg{
+  width:26px;
+  height:26px;
+  color:var(--accent);
+  filter:drop-shadow(0 0 8px var(--accent));
+}
+
+.brand-title h1{
+  font-size:1.35rem;
+  font-weight:800;
+  letter-spacing:0.03em;
+  line-height:1.1;
+  background:linear-gradient(135deg,#fff 0%,#93c5fd 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.brand-author{
+  font-size:0.75rem;
+  font-weight:700;
+  color:#38bdf8;
+  letter-spacing:0.02em;
+  display:flex;
+  align-items:center;
+  gap:4px;
+  margin-top:2px;
+}
+
+.brand-author svg{
+  width:13px;
+  height:13px;
+}
+
+.action-bar{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px;
+  flex:1;
+  justify-content:flex-end;
+}
+
+.input-pill{
+  background:#060a14;
+  border:1px solid var(--panel-border);
+  border-radius:12px;
+  padding:9px 14px;
+  color:var(--txt-main);
+  font-size:16px;
+  outline:none;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  transition:all 0.2s ease;
+}
+
+.input-pill:focus-within{
+  border-color:var(--accent);
+  box-shadow:0 0 14px rgba(59,130,246,0.3);
+}
+
+.input-pill svg{
+  width:16px;
+  height:16px;
+  color:var(--txt-sub);
+  flex-shrink:0;
+}
+
+.input-pill input{
+  background:transparent;
+  border:none;
+  color:var(--txt-main);
+  font-size:16px;
+  outline:none;
+  width:100%;
+}
+
+.input-logo{
+  min-width:240px;
+  flex:1;
+  max-width:380px;
+}
+
+.input-key{
+  width:160px;
+}
+
+.btn-pill{
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  color:#fff;
+  border:none;
+  padding:10px 22px;
+  border-radius:12px;
+  font-weight:800;
+  font-size:0.85rem;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  box-shadow:0 4px 18px rgba(37,99,235,0.35);
+  transition:all 0.2s;
+  user-select:none;
+}
+
+.btn-pill svg{
+  width:16px;
+  height:16px;
+}
+
+.btn-pill:active{transform:scale(0.97)}
+
+.error-banner{
+  background:rgba(244,63,94,0.1);
+  border:1px solid rgba(244,63,94,0.3);
+  color:var(--xiu);
+  padding:12px 16px;
+  border-radius:14px;
+  margin-bottom:16px;
+  font-size:0.85rem;
+  display:none;
+  align-items:center;
+  gap:8px;
+}
+
+.error-banner svg{
+  width:18px;
+  height:18px;
+  flex-shrink:0;
+}
+
+.grid-workspace{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(350px,1fr));
+  gap:18px;
+}
+
+.glass-card{
+  background:var(--panel-bg);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--panel-border);
+  border-radius:24px;
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  box-shadow:0 12px 40px rgba(0,0,0,0.5);
+  transition:border-color 0.2s ease;
+}
+
+.glass-card:hover{
+  border-color:var(--panel-border-hover);
+}
+
+.card-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.card-top h2{
+  font-size:1.05rem;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.card-top h2 svg{
+  width:18px;
+  height:18px;
+  color:var(--accent);
+}
+
+.chip-pill{
+  font-size:0.75rem;
+  background:#091224;
+  border:1px solid #1a2c4e;
+  color:#93c5fd;
+  padding:5px 12px;
+  border-radius:20px;
+  font-weight:700;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+
+.chip-pill svg{
+  width:12px;
+  height:12px;
+}
+
+.signal-chamber{
+  background:radial-gradient(circle at center,#0d1833 0%,#040814 100%);
+  border:1px solid #182b4d;
+  border-radius:20px;
+  padding:24px 16px;
+  text-align:center;
+  position:relative;
+}
+
+.signal-output{
+  font-size:4.2rem;
+  font-weight:900;
+  line-height:1;
+  text-transform:uppercase;
+  letter-spacing:-0.03em;
+}
+
+.signal-output.tai{
+  color:var(--tai);
+  filter:drop-shadow(0 0 22px var(--tai-glow));
+}
+
+.signal-output.xiu{
+  color:var(--xiu);
+  filter:drop-shadow(0 0 22px var(--xiu-glow));
+}
+
+.signal-meta{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:16px;
+  margin-top:14px;
+  font-size:0.85rem;
+  color:var(--txt-sub);
+}
+
+.meta-item{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+}
+
+.meta-item svg{
+  width:15px;
+  height:15px;
+}
+
+.flag-pill{
+  font-size:0.7rem;
+  font-weight:800;
+  padding:3px 10px;
+  border-radius:20px;
+  background:#261805;
+  color:var(--warn);
+  border:1px solid #57390c;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+}
+
+.flag-pill svg{
+  width:12px;
+  height:12px;
+}
+
+.metrics-strip{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+}
+
+.metric-cell{
+  background:#050914;
+  border:1px solid var(--panel-border);
+  border-radius:14px;
+  padding:10px 4px;
+  text-align:center;
+}
+
+.metric-cell .label{
+  font-size:0.68rem;
+  color:var(--txt-sub);
+  text-transform:uppercase;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+}
+
+.metric-cell .label svg{
+  width:12px;
+  height:12px;
+}
+
+.metric-cell .val{
+  font-size:0.95rem;
+  font-weight:800;
+  margin-top:3px;
+}
+
+.section-head{
+  font-size:0.78rem;
+  font-weight:800;
+  color:var(--txt-sub);
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+}
+
+.section-head span{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+}
+
+.section-head svg{
+  width:14px;
+  height:14px;
+}
+
+.feed-scroll{
+  max-height:175px;
+  overflow-y:auto;
+  border:1px solid var(--panel-border);
+  border-radius:14px;
+  background:#050914;
+  padding:4px 0;
+}
+
+.feed-scroll::-webkit-scrollbar{width:4px}
+.feed-scroll::-webkit-scrollbar-thumb{background:#1e3152;border-radius:2px}
+
+.feed-row{
+  display:flex;
+  align-items:center;
+  padding:8px 12px;
+  font-size:0.78rem;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+}
+
+.feed-row:last-child{border-bottom:none}
+
+.status-ring{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  margin-right:10px;
+  flex-shrink:0;
+}
+.status-ring.T{background:var(--tai);box-shadow:0 0 8px var(--tai)}
+.status-ring.X{background:var(--xiu);box-shadow:0 0 8px var(--xiu)}
+
+.badge-tag{
+  font-size:0.7rem;
+  font-weight:800;
+  padding:2px 8px;
+  border-radius:20px;
+  margin-right:8px;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+}
+
+.badge-tag svg{
+  width:12px;
+  height:12px;
+}
+
+.badge-pass{
+  background:rgba(16,185,129,0.15);
+  color:var(--tai);
+  border:1px solid rgba(16,185,129,0.3);
+}
+
+.badge-fail{
+  background:rgba(244,63,94,0.15);
+  color:var(--xiu);
+  border:1px solid rgba(244,63,94,0.3);
+}
+
+footer{
+  margin-top:24px;
+  padding:18px;
+  text-align:center;
+  font-size:0.78rem;
+  color:var(--txt-sub);
+  border-top:1px solid var(--panel-border);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+}
+
+footer svg{
+  width:14px;
+  height:14px;
+  color:var(--accent);
+}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="container">
   <header>
-    <div class="brand">
-      <div class="logo-box" id="box-logo">
-        <div class="logo-def" id="logo-default">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    <div class="brand-section">
+      <div class="logo-viewport" id="box-logo">
+        <div class="logo-default" id="logo-default">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <span>HELIX</span>
         </div>
-        <img id="logo-img" alt="">
+        <img id="logo-img" alt="Logo Helix">
       </div>
-      <div>
-        <h1>HELIX</h1>
-        <span class="sub">Dev Anh Khôi</span>
+      <div class="brand-title">
+        <h1>HELIX QUANT</h1>
+        <span class="brand-author">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Phát hành bởi: Dev Anh Khôi
+        </span>
       </div>
     </div>
-    <div class="tools">
-      <input type="text" id="logo-base64" class="inp inp-logo mono" placeholder="Base64 logo..." autocomplete="off">
-      <input type="password" id="key" class="inp inp-key mono" placeholder="Key..." autocomplete="off">
-      <button class="btn" id="btn-ketnoi">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+    <div class="action-bar">
+      <div class="input-pill input-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        <input type="text" id="logo-base64" class="mono" placeholder="Dán mã Base64 logo..." autocomplete="off">
+      </div>
+      <div class="input-pill input-key">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6M15.5 7.5l3 3"/></svg>
+        <input type="password" id="key" class="mono" placeholder="Key..." autocomplete="off">
+      </div>
+      <button class="btn-pill" id="btn-sync">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
         KẾT NỐI
       </button>
     </div>
   </header>
 
-  <div id="hop-loi" class="err"></div>
+  <div id="box-error" class="error-banner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="err-text">Lỗi kết nối</span>
+  </div>
 
-  <div class="grid" id="khu-vuc-lam-viec" style="display:none">
-    <div class="card" id="the-hu">
-      <div class="card-h">
-        <h2>TRUYỀN THỐNG</h2>
-        <span class="tag mono" id="hu-thuat-toan">—</span>
+  <div class="grid-workspace" id="dashboard" style="display:none">
+    <!-- PANEL TÀI XỈU HŨ -->
+    <div class="glass-card" id="hu-panel">
+      <div class="card-top">
+        <h2>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 12l-4-4-4 4M12 16V8"/></svg>
+          TÀI XỈU TRUYỀN THỐNG
+        </h2>
+        <span class="chip-pill mono" id="hu-algo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          <span id="hu-algo-text">ĐANG CHỜ</span>
+        </span>
       </div>
-      <div class="pred-box">
-        <div class="pred" id="hu-du-doan">—</div>
-        <div class="meta mono">
-          <span>#<b id="hu-phien-tiep" style="color:var(--txt)">—</b></span>
-          <span><b id="hu-tin-cay" style="color:var(--txt)">—</b>%</span>
-          <span id="hu-co-bao" class="badge" style="display:none">ĐẢO</span>
+      <div class="signal-chamber">
+        <div class="signal-output" id="hu-pred">—</div>
+        <div class="signal-meta mono">
+          <span class="meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+            PHIÊN: <b id="hu-target" style="color:var(--txt-main)">—</b>
+          </span>
+          <span class="meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
+            TIN CẬY: <b id="hu-conf" style="color:var(--txt-main)">—</b>
+          </span>
+          <span id="hu-guard-flag" class="flag-pill" style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            ĐẢO CẦU
+          </span>
         </div>
       </div>
-      <div class="stats mono">
-        <div class="st"><div class="l">Trước</div><div class="v" id="hu-phien-truoc">—</div></div>
-        <div class="st"><div class="l">Xúc xắc</div><div class="v" id="hu-xuc-xac">—</div></div>
-        <div class="st"><div class="l">Tổng</div><div class="v" id="hu-tong-diem">—</div></div>
-        <div class="st"><div class="l">Trúng</div><div class="v" id="hu-ti-le">—</div></div>
+      <div class="metrics-strip mono">
+        <div class="metric-cell">
+          <div class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>Trước</div>
+          <div class="val" id="hu-prev">—</div>
+        </div>
+        <div class="metric-cell">
+          <div class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="8" cy="8" r="1.5"/><circle cx="16" cy="16" r="1.5"/><circle cx="12" cy="12" r="1.5"/></svg>Xúc Xắc</div>
+          <div class="val" id="hu-dice">—</div>
+        </div>
+        <div class="metric-cell">
+          <div class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24M14.83 9.17l4.24-4.24M14.83 14.83l4.24 4.24M9.17 14.83l-4.24 4.24"/></svg>Tổng</div>
+          <div class="val" id="hu-total">—</div>
+        </div>
+        <div class="metric-cell">
+          <div class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Tỉ Lệ 20</div>
+          <div class="val" id="hu-acc">—</div>
+        </div>
       </div>
       <div>
-        <div class="sec-t"><span>Kiểm định</span><span>30</span></div>
-        <div class="scroll mono" id="hu-kiem-dinh"></div>
+        <div class="section-head">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Kiểm Định Chuỗi</span>
+          <span>TRẠNG THÁI</span>
+        </div>
+        <div class="feed-scroll mono" id="hu-vlog"></div>
       </div>
       <div>
-        <div class="sec-t"><span>Lịch sử</span><span>30</span></div>
-        <div class="scroll mono" id="hu-lich-su"></div>
+        <div class="section-head">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Lịch Sử Phiên</span>
+          <span>KẾT QUẢ</span>
+        </div>
+        <div class="feed-scroll mono" id="hu-slog"></div>
       </div>
     </div>
 
-    <div class="card" id="the-md5">
-      <div class="card-h">
-        <h2>MD5</h2>
-        <span class="tag mono" id="md5-thuat-toan">—</span>
+    <!-- PANEL TÀI XỈU MD5 -->
+    <div class="glass-card" id="md5-panel">
+      <div class="card-top">
+        <h2>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          TÀI XỈU MD5 QUANT
+        </h2>
+        <span class="chip-pill mono" id="md5-algo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          <span id="md5-algo-text">ĐANG CHỜ</span>
+        </span>
       </div>
-      <div class="pred-box">
-        <div class="pred" id="md5-du-doan">—</div>
-        <div class="meta mono">
-          <span>#<b id="md5-phien-tiep" style="color:var(--txt)">—</b></span>
-          <span><b id="md5-tin-cay" style="color:var(--txt)">—</b>%</span>
-          <span id="md5-co-bao" class="badge" style="display:none">ĐẢO</span>
+      <div class="signal-chamber">
+        <div class="signal-output" id="md5-pred">—</div>
+        <div class="signal-meta mono">
+          <span class="meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+            PHIÊN: <b id="md5-target" style="color:var(--txt-main)">—</b>
+          </span>
+          <span class="meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
+            TIN CẬY: <b id="md5-conf" style="color:var(--txt-main)">—</b>
+          </span>
+          <span id="md5-guard-flag" class="flag-pill" style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            ĐẢO CẦU
+          </span>
         </div>
       </div>
-      <div class="stats mono">
-        <div class="st"><div class="l">Trước</div><div class="v" id="md5-phien-truoc">—</div></div>
-        <div class="st"><div class="l">Xúc xắc</div><div class="v" id="md5-xuc-xac">—</div></div>
-        <div class="st"><div class="l">Tổng</div><div class="v" id="md5-tong-diem">—</div></div>
-        <div class="st"><div class="l">Trúng</div><div class="v" id="md5-ti-le">—</div></div>
+      <div class="metrics-strip mono">
+        <div class="metric-cell">
+          <div class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>Trước</div>
+          <div class="val" id="md5-prev">—</div>
+        </div>
+        <div class="metric-cell">
+          <div class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="8" cy="8" r="1.5"/><circle cx="16" cy="16" r="1.5"/><circle cx="12" cy="12" r="1.5"/></svg>Xúc Xắc</div>
+          <div class="val" id="md5-dice">—</div>
+        </div>
+        <div class="metric-cell">
+          <div class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24M14.83 9.17l4.24-4.24M14.83 14.83l4.24 4.24M9.17 14.83l-4.24 4.24"/></svg>Tổng</div>
+          <div class="val" id="md5-total">—</div>
+        </div>
+        <div class="metric-cell">
+          <div class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Tỉ Lệ 20</div>
+          <div class="val" id="md5-acc">—</div>
+        </div>
       </div>
       <div>
-        <div class="sec-t"><span>Kiểm định</span><span>30</span></div>
-        <div class="scroll mono" id="md5-kiem-dinh"></div>
+        <div class="section-head">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Kiểm Định Chuỗi</span>
+          <span>TRẠNG THÁI</span>
+        </div>
+        <div class="feed-scroll mono" id="md5-vlog"></div>
       </div>
       <div>
-        <div class="sec-t"><span>Lịch sử</span><span>30</span></div>
-        <div class="scroll mono" id="md5-lich-su"></div>
+        <div class="section-head">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Lịch Sử Phiên</span>
+          <span>KẾT QUẢ</span>
+        </div>
+        <div class="feed-scroll mono" id="md5-slog"></div>
       </div>
     </div>
   </div>
 
-  <footer class="mono">HELIX · ANH KHÔI</footer>
+  <footer class="mono">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+    HELIX PRO QUANTITATIVE ENGINE // THIẾT KẾ ĐỘC QUYỀN BỞI DEV ANH KHÔI // TỰ ĐỘNG LÀM MỚI 4000MS
+  </footer>
 </div>
 
 <script>
-const $=id=>document.getElementById(id);
-let keyHienTai=localStorage.getItem("helix_key")||"";
-let logoHienTai=localStorage.getItem("helix_logo_base64")||"";
-let boDem=null;
+const $ = id => document.getElementById(id);
+let activeKey = localStorage.getItem("helix_key") || "";
+let activeLogo = localStorage.getItem("helix_logo_base64") || "";
+let timer = null;
 
-function apDungLogo(b64){
-  const img=$("logo-img"),def=$("logo-default");
-  if(!b64?.trim()){img.style.display="none";def.style.display="flex";return}
-  let src=b64.trim();
-  if(!src.startsWith("data:image"))src="data:image/png;base64,"+src;
-  img.src=src;
-  img.onload=()=>{img.style.display="block";def.style.display="none"};
-  img.onerror=()=>{img.style.display="none";def.style.display="flex"};
+// HIỂN THỊ LOGO FULL TỈ LỆ
+function renderLogo(b64) {
+  const img = $("logo-img");
+  const def = $("logo-default");
+  if (!b64 || !b64.trim()) {
+    img.style.display = "none";
+    def.style.display = "flex";
+    return;
+  }
+  let s = b64.trim();
+  if (!s.startsWith("data:image")) s = "data:image/png;base64," + s;
+  img.src = s;
+  img.onload = () => {
+    img.style.display = "block";
+    def.style.display = "none";
+  };
+  img.onerror = () => {
+    img.style.display = "none";
+    def.style.display = "flex";
+  };
 }
 
-if(logoHienTai){$("logo-base64").value=logoHienTai;apDungLogo(logoHienTai)}
-$("logo-base64").addEventListener("input",e=>{
-  const v=e.target.value.trim();
-  localStorage.setItem("helix_logo_base64",v);
-  apDungLogo(v);
+if (activeLogo) {
+  $("logo-base64").value = activeLogo;
+  renderLogo(activeLogo);
+}
+
+$("logo-base64").addEventListener("input", e => {
+  const v = e.target.value.trim();
+  localStorage.setItem("helix_logo_base64", v);
+  renderLogo(v);
 });
-if(keyHienTai)$("key").value=keyHienTai;
 
-function hienThi(kenh,d){
-  if(!d)return;
-  const p=d.prediction,l=d.last;
-  if(p){
-    const el=$(`${kenh}-du-doan`);
-    el.textContent=p.pred.toUpperCase();
-    el.className=`pred ${p.pred==="tài"?"tai":"xiu"}`;
-    $(`${kenh}-phien-tiep`).textContent=p.session;
-    $(`${kenh}-tin-cay`).textContent=p.conf;
-    $(`${kenh}-thuat-toan`).textContent=p.src||"—";
-    const bao=$(`${kenh}-co-bao`);
-    if(p.reverse||p.cheat){bao.style.display="inline-block";bao.textContent=p.reverse?"ĐẢO":"BẺ"}
-    else bao.style.display="none";
-  }
-  if(l){
-    $(`${kenh}-phien-truoc`).textContent=l.session;
-    $(`${kenh}-xuc-xac`).textContent=l.dice.join("-");
-    $(`${kenh}-tong-diem`).textContent=`${l.total} ${l.result.toUpperCase()}`;
-  }
-  $(`${kenh}-ti-le`).textContent=d.acc20||"0%";
+if (activeKey) $("key").value = activeKey;
 
-  const kd=$(`${kenh}-kiem-dinh`);
-  kd.innerHTML=(d.outcomes||[]).map(o=>`
-    <div class="row">
-      <span class="${o.ok?"ok":"ng"}">${o.ok?"Đ":"S"}</span>
+function renderTelemetry(k, d) {
+  if (!d) return;
+  const p = d.prediction;
+  const l = d.last;
+
+  if (p) {
+    const el = $(`${k}-pred`);
+    el.textContent = p.pred.toUpperCase();
+    el.className = `signal-output ${p.pred === "tài" ? "tai" : "xiu"}`;
+    $(`${k}-target`).textContent = `#${p.session}`;
+    $(`${k}-conf`).textContent = `${p.conf}%`;
+    $(`${k}-algo-text`).textContent = p.src || "ĐỊNH LƯỢNG";
+
+    const f = $(`${k}-guard-flag`);
+    if (p.reverse || p.cheat) {
+      f.style.display = "inline-flex";
+      f.textContent = p.reverse ? "ĐẢO CẦU" : "CẢNH BÁO";
+    } else {
+      f.style.display = "none";
+    }
+  }
+
+  if (l) {
+    $(`${k}-prev`).textContent = l.session;
+    $(`${k}-dice`).textContent = l.dice.join(" - ");
+    $(`${k}-total`).textContent = `${l.total} (${l.result.toUpperCase()})`;
+  }
+
+  $(`${k}-acc`).textContent = d.acc20 || "0%";
+
+  const vlog = $(`${k}-vlog`);
+  vlog.innerHTML = (d.outcomes || []).map(o => `
+    <div class="feed-row">
+      <span class="badge-tag ${o.ok ? 'badge-pass' : 'badge-fail'}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          ${o.ok ? '<polyline points="20 6 9 17 4 12"/>' : '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'}
+        </svg>
+        ${o.ok ? 'ĐÚNG' : 'SAI'}
+      </span>
       <span>#${o.session}</span>
-      <span style="margin:0 8px;font-weight:700">${o.pred.toUpperCase()}→${o.actual.toUpperCase()}</span>
-      <span style="color:var(--muted);margin-left:auto;font-size:.68rem">${o.src||""}</span>
-    </div>`).join("")||'<div class="row" style="color:var(--muted)">Trống</div>';
+      <span style="margin:0 10px;font-weight:700">${o.pred.toUpperCase()} → ${o.actual.toUpperCase()}</span>
+      <span style="color:var(--txt-sub);margin-left:auto">${o.src || ''}</span>
+    </div>
+  `).join("") || '<div class="feed-row" style="color:var(--txt-sub)">Chưa có dữ liệu kiểm định.</div>';
 
-  const ls=$(`${kenh}-lich-su`);
-  ls.innerHTML=(d.history||[]).map(h=>`
-    <div class="row">
-      <span class="dot ${h.tx}"></span>
+  const slog = $(`${k}-slog`);
+  slog.innerHTML = (d.history || []).map(h => `
+    <div class="feed-row">
+      <span class="status-ring ${h.tx}"></span>
       <span>#${h.s}</span>
-      <span style="margin-left:10px;color:var(--muted)">[${h.d.join("-")}]</span>
+      <span style="margin-left:12px;color:var(--txt-sub)">[${h.d.join("-")}]</span>
       <span style="margin-left:auto;font-weight:700">${h.t} ${h.r.toUpperCase()}</span>
-    </div>`).join("")||"";
+    </div>
+  `).join("") || "";
 }
 
-const cache=localStorage.getItem("helix_cache_dashboard");
-if(cache){
-  try{
-    const p=JSON.parse(cache);
-    $("khu-vuc-lam-viec").style.display="grid";
-    hienThi("hu",p.hu);hienThi("md5",p.md5);
-  }catch{}
+// KHÔI PHỤC DỮ LIỆU TỨC THÌ KHI RELOAD F5
+const cache = localStorage.getItem("helix_cache_store");
+if (cache) {
+  try {
+    const parsed = JSON.parse(cache);
+    $("dashboard").style.display = "grid";
+    renderTelemetry("hu", parsed.hu);
+    renderTelemetry("md5", parsed.md5);
+  } catch {}
 }
 
-async function dongBo(){
-  keyHienTai=$("key").value.trim();
-  const hop=$("hop-loi");
-  if(!keyHienTai){hop.textContent="Nhập key";hop.style.display="block";return}
-  localStorage.setItem("helix_key",keyHienTai);
-  try{
-    const res=await fetch(`/api/dashboard?key=${encodeURIComponent(keyHienTai)}`);
-    const data=await res.json();
-    if(!res.ok){
-      hop.textContent=data.error||"Key sai";
-      hop.style.display="block";
-      if(!cache)$("khu-vuc-lam-viec").style.display="none";
+async function syncEngine() {
+  activeKey = $("key").value.trim();
+  const err = $("box-error");
+  const errTxt = $("err-text");
+
+  if (!activeKey) {
+    errTxt.textContent = "Vui lòng nhập mã bản quyền.";
+    err.style.display = "flex";
+    return;
+  }
+  localStorage.setItem("helix_key", activeKey);
+
+  try {
+    const res = await fetch(`/api/dashboard?key=${encodeURIComponent(activeKey)}`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      errTxt.textContent = data.error || "Mã bản quyền không hợp lệ.";
+      err.style.display = "flex";
+      if (!cache) $("dashboard").style.display = "none";
       return;
     }
-    hop.style.display="none";
-    $("khu-vuc-lam-viec").style.display="grid";
-    localStorage.setItem("helix_cache_dashboard",JSON.stringify(data));
-    hienThi("hu",data.hu);hienThi("md5",data.md5);
-  }catch{
-    if(!cache){hop.textContent="Đang kết nối...";hop.style.display="block"}
+
+    err.style.display = "none";
+    $("dashboard").style.display = "grid";
+    
+    localStorage.setItem("helix_cache_store", JSON.stringify(data));
+    renderTelemetry("hu", data.hu);
+    renderTelemetry("md5", data.md5);
+  } catch (e) {
+    if (!cache) {
+      errTxt.textContent = "Không thể kết nối máy chủ. Đang thử lại...";
+      err.style.display = "flex";
+    }
   }
 }
 
-$("btn-ketnoi").onclick=()=>{
-  dongBo();
-  if(boDem)clearInterval(boDem);
-  boDem=setInterval(dongBo,4000);
+$("btn-sync").onclick = () => {
+  syncEngine();
+  if (timer) clearInterval(timer);
+  timer = setInterval(syncEngine, 4000);
 };
-if(keyHienTai){dongBo();boDem=setInterval(dongBo,4000)}
+
+if (activeKey) {
+  syncEngine();
+  timer = setInterval(syncEngine, 4000);
+}
 </script>
 </body>
 </html>
