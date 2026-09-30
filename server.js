@@ -11,15 +11,17 @@ const VALID_KEY = "anhkhoi_xabc2102";
 const DATA_DIR = path.join(__dirname, "data");
 const STORE_FILE = path.join(DATA_DIR, "store.json");
 
+// Nguồn cấp dữ liệu chuẩn
 const API_HU = "https://wtx.tele68.com/v1/tx/lite-sessions?cp=R&cl=R&pf=web&at=83991213bfd4c554dc94bcd98979bdc5";
-const API_MD5 = "https://wtxmd52.tele68.com/v1/txmd5/sessions";
+const API_MD5 = "https://lc79-taixiumd5-dulieu.onrender.com/data";
 
 if (!existsSync(DATA_DIR)) {
   try { mkdirSync(DATA_DIR, { recursive: true }); } catch {}
 }
 
-// --- CÁC HÀM TÍNH TOÁN ĐỊNH LƯỢNG CHUẨN ---
+// --- TIỆN ÍCH TOÁN HỌC & ĐO LƯỜNG ENTROPY ---
 const avg = arr => (arr && arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : 0);
+
 const std = arr => {
   if (!arr || arr.length < 2) return 0;
   const m = avg(arr);
@@ -48,7 +50,7 @@ const streakLen = tx => {
   return s;
 };
 
-// --- BẢO TOÀN DỮ LIỆU ĐỒNG BỘ ---
+// --- QUẢN LÝ DỮ LIỆU ĐỒNG BỘ TRÁNH MẤT PHIÊN ---
 function loadStore() {
   try {
     if (existsSync(STORE_FILE)) {
@@ -68,54 +70,57 @@ function saveStore(s) {
 
 const store = loadStore();
 
-// --- TẦNG 1: THUẬT TOÁN HÌNH THÁI DÒNG TIỀN ---
-class PatternEngine {
+// --- TẦNG 1: THUẬT TOÁN ĐU SÓNG THỰC CHIẾN (MOMENTUM ENGINE) ---
+class MomentumPatternEngine {
   get(tx) {
     if (!tx || tx.length < 4) return null;
     const last = tx[tx.length - 1];
     const s = streakLen(tx);
 
-    // Bệt sâu & bão hòa
-    if (s >= 8) return { pred: last === "T" ? "xỉu" : "tài", conf: 93, src: `Bẻ bệt sâu (${s} tay)` };
-    if (s >= 6) return { pred: last === "T" ? "xỉu" : "tài", conf: 89, src: `Bẻ bệt bão hòa (${s} tay)` };
-    if (s >= 3 && s < 6) return { pred: last === "T" ? "tài" : "xỉu", conf: 85 + (s - 3) * 2, src: `Đu sóng bệt (${s} tay)` };
+    // Chiến thuật bám bệt: Đu từ tay 3 đến tay 8
+    if (s >= 3 && s <= 8) {
+      return { pred: last === "T" ? "tài" : "xỉu", conf: 86 + Math.min(10, s * 1.5), src: `Đu sóng bệt (${s} tay)` };
+    }
+    if (s > 8) {
+      return { pred: last === "T" ? "xỉu" : "tài", conf: 92, src: `Đỉnh bệt bão hòa (${s} tay)` };
+    }
 
-    // Cầu đảo 1-1
+    // Cầu đảo 1-1 (Ping-pong)
     const last6 = tx.slice(-6);
     if (last6.length === 6 && last6.every((v, i) => i === 0 || v !== last6[i - 1])) {
-      return { pred: last === "T" ? "xỉu" : "tài", conf: 89, src: "Bắt nhịp đảo 1-1" };
+      return { pred: last === "T" ? "xỉu" : "tài", conf: 90, src: "Bắt nhịp đảo 1-1" };
     }
 
-    // Cầu đôi 2-2
+    // Cầu đôi đối xứng 2-2
     const last4 = tx.slice(-4);
     if (last4[0] === last4[1] && last4[2] === last4[3] && last4[0] !== last4[2]) {
-      return { pred: last4[3] === "T" ? "xỉu" : "tài", conf: 86, src: "Cầu song hành 2-2" };
+      return { pred: last4[3] === "T" ? "xỉu" : "tài", conf: 88, src: "Khóa cầu đôi 2-2" };
     }
 
-    // Cầu 3-2-1 & 1-2-3
+    // Cầu bậc thang 3-2-1 & 1-2-3
     const seq6 = tx.slice(-6).join("");
     if (seq6 === "TTTXXT" || seq6 === "XXXTTX") return { pred: last === "T" ? "tài" : "xỉu", conf: 88, src: "Cầu gãy 3-2-1" };
     if (seq6 === "TXXTTT" || seq6 === "XTTXXX") return { pred: last === "T" ? "xỉu" : "tài", conf: 88, src: "Cầu tiến 1-2-3" };
 
     // Cầu kẹp 2-1-2
     const last5 = tx.slice(-5).join("");
-    if (last5 === "TTXTT" || last5 === "XXTXX") return { pred: last === "T" ? "xỉu" : "tài", conf: 85, src: "Cầu kẹp 2-1-2" };
+    if (last5 === "TTXTT" || last5 === "XXTXX") return { pred: last === "T" ? "xỉu" : "tài", conf: 86, src: "Cầu kẹp 2-1-2" };
 
     // Nhịp 3-1 & 1-3
     const last4Seq = tx.slice(-4).join("");
-    if (last4Seq === "TTTX" || last4Seq === "XXXT") return { pred: last === "T" ? "xỉu" : "tài", conf: 84, src: "Cầu nhịp 3-1" };
-    if (last4Seq === "TXXX" || last4Seq === "XTTT") return { pred: last === "T" ? "tài" : "xỉu", conf: 84, src: "Cầu nhịp 1-3" };
+    if (last4Seq === "TTTX" || last4Seq === "XXXT") return { pred: last === "T" ? "xỉu" : "tài", conf: 85, src: "Cầu nhịp 3-1" };
+    if (last4Seq === "TXXX" || last4Seq === "XTTT") return { pred: last === "T" ? "tài" : "xỉu", conf: 85, src: "Cầu nhịp 1-3" };
 
     return null;
   }
 }
 
-// --- TẦNG 2: THUẬT TOÁN XÁC SUẤT MARKOV K3 & ĐỈNH ĐÁY GAUSS ---
-class StatisticalEngine {
+// --- TẦNG 2: MARKOV BẬC 3 & PHÂN PHỐI CHUẨN GAUSS (STATISTICAL GAUSS ENGINE) ---
+class DeepStatisticalEngine {
   get(tx, totals) {
     if (!tx || tx.length < 10) return null;
 
-    // 1. Markov bậc 3 có trọng số Dirichlet
+    // 1. Phân tích xác suất Markov bậc 3 có trọng số Dirichlet
     if (tx.length >= 16) {
       const state3 = tx.slice(-3).join("");
       const counts = { T: 0, X: 0 };
@@ -127,12 +132,12 @@ class StatisticalEngine {
       const sum = counts.T + counts.X;
       if (sum >= 3) {
         const probT = (counts.T + 1) / (sum + 2);
-        if (probT >= 0.67) return { pred: "tài", conf: Math.round(79 + probT * 16), src: "Markov K3 xác suất cao" };
-        if (probT <= 0.33) return { pred: "xỉu", conf: Math.round(79 + (1 - probT) * 16), src: "Markov K3 xác suất cao" };
+        if (probT >= 0.65) return { pred: "tài", conf: Math.round(81 + probT * 15), src: "Markov K3 xác suất cao" };
+        if (probT <= 0.35) return { pred: "xỉu", conf: Math.round(81 + (1 - probT) * 15), src: "Markov K3 xác suất cao" };
       }
     }
 
-    // 2. Quét bước sóng chu kỳ Lag 2-10
+    // 2. Tương quan bước sóng Lag 2-10
     let bestC = 0, bestS = 0;
     for (let c = 2; c <= 10; c++) {
       let match = 0, count = 0;
@@ -150,25 +155,25 @@ class StatisticalEngine {
       const target = tx[tx.length - bestC];
       return {
         pred: target === "T" ? "tài" : "xỉu",
-        conf: Math.min(95, Math.round(82 + bestS * 14)),
+        conf: Math.min(96, Math.round(83 + bestS * 14)),
         src: `Chu kỳ bước sóng ${bestC}`
       };
     }
 
-    // 3. Chuẩn hóa phân phối Gauss cho 3 xúc xắc (Mean=10.5, Std=2.96)
+    // 3. Chuẩn hóa độ lệch Gaussian Z-Score (Mean = 10.5, Std = 2.96)
     if (totals && totals.length >= 12) {
       const recentWindow = totals.slice(-6);
       const m = avg(recentWindow);
       const zScore = (m - 10.5) / 2.96;
-      if (zScore >= 1.70) return { pred: "xỉu", conf: 90, src: "Đỉnh điểm chuẩn Gauss" };
-      if (zScore <= -1.70) return { pred: "tài", conf: 90, src: "Đáy điểm chuẩn Gauss" };
+      if (zScore >= 1.68) return { pred: "xỉu", conf: 91, src: "Đỉnh điểm chuẩn Gauss" };
+      if (zScore <= -1.68) return { pred: "tài", conf: 91, src: "Đáy điểm chuẩn Gauss" };
     }
 
     return null;
   }
 }
 
-// --- TẦNG 3: ENTROPY, KMP & TỔ HỢP MẶT XÍ NGẦU VIP ---
+// --- TẦNG 3: ENTROPY, KMP SEARCH & MẶT XÍ NGẦU VIP (QUANT ENGINE) ---
 class EliteQuantEngine {
   get(history) {
     if (!history || history.length < 12) return null;
@@ -176,14 +181,14 @@ class EliteQuantEngine {
     const totals = history.map(h => h.total);
     const dice = history.map(h => h.dice);
 
-    // 1. Phân tích Shannon Entropy
+    // 1. Phân tích bão hòa Entropy
     const e16 = entropy(tx.slice(-16));
     if (e16 < 0.28) {
       const last = tx[tx.length - 1];
-      return { pred: last === "T" ? "xỉu" : "tài", conf: 94, src: "Bão hòa Entropy" };
+      return { pred: last === "T" ? "xỉu" : "tài", conf: 95, src: "Bão hòa Entropy" };
     }
 
-    // 2. Đối sánh chuỗi KMP sâu
+    // 2. KMP Đối sánh lịch sử sâu
     const seq = tx.map(v => (v === "T" ? 1 : 0));
     const maxPatLen = Math.min(10, Math.floor(seq.length / 3));
     for (let len = maxPatLen; len >= 4; len--) {
@@ -202,7 +207,7 @@ class EliteQuantEngine {
       if (nxt !== null && hits >= 2) {
         return {
           pred: nxt === 1 ? "tài" : "xỉu",
-          conf: Math.min(97, 83 + len * 2 + hits),
+          conf: Math.min(97, 85 + len * 2 + hits),
           src: `Trùng khớp lịch sử (${len} nhịp)`
         };
       }
@@ -220,7 +225,7 @@ class EliteQuantEngine {
     if (lowFaces >= 9) return { pred: "tài", conf: 91, src: "Tụ lực mặt nhỏ (1-2)" };
     if (highFaces >= 9) return { pred: "xỉu", conf: 91, src: "Tụ lực mặt lớn (5-6)" };
 
-    // 4. Động lượng xung lực điểm số
+    // 4. Vector động lượng tổng điểm
     let mom = 0;
     for (let i = 1; i < Math.min(8, totals.length); i++) {
       const delta = totals[totals.length - i] - totals[totals.length - i - 1];
@@ -228,14 +233,103 @@ class EliteQuantEngine {
       else if (delta <= -3) mom--;
     }
     if (Math.abs(mom) >= 4) {
-      return { pred: mom > 0 ? "xỉu" : "tài", conf: 86 + Math.abs(mom), src: "Động lượng điểm số" };
+      return { pred: mom > 0 ? "xỉu" : "tài", conf: 88 + Math.abs(mom), src: "Động lượng điểm số" };
     }
 
     return null;
   }
 }
 
-// --- BỘ LỌC BẪY CẦU & BÃO SỐ ---
+// --- TẦNG 4: HỌC MÁY THÍCH NGHI ĐA MÔ HÌNH (HEDGE WEIGHT LEARNING) ---
+class AdaptiveMachineLearningTracker {
+  constructor(game) {
+    this.game = game;
+    this.outcomes = store[game]?.outcomes || [];
+    this.streakOk = 0;
+    this.streakNg = 0;
+    this.reverse = false;
+    
+    // Trọng số học máy động khởi tạo
+    this.weights = {
+      momentum: 0.36,
+      statistical: 0.34,
+      quant: 0.30
+    };
+  }
+
+  record(session, pred, actual, src) {
+    const ok = pred === actual;
+    this.outcomes.push({ session, pred, actual, ok, src, ts: Date.now() });
+
+    // Giữ bộ đệm vừa đủ, bảo đảm xuất đủ 30 phiên kiểm định
+    if (this.outcomes.length > 250) this.outcomes = this.outcomes.slice(-200);
+    store[this.game].outcomes = this.outcomes;
+    saveStore(store);
+
+    // Cập nhật trọng số theo thuật toán Hedge Multiplicative Update
+    const eta = 0.08; // Tốc độ học (learning rate)
+    let category = "momentum";
+    if (src.includes("Markov") || src.includes("sóng") || src.includes("Gauss")) category = "statistical";
+    else if (src.includes("KMP") || src.includes("Entropy") || src.includes("Tụ lực") || src.includes("Động lượng")) category = "quant";
+
+    if (ok) {
+      this.streakOk++;
+      this.streakNg = 0;
+      if (this.reverse && this.streakOk >= 2) this.reverse = false;
+      this.weights[category] *= Math.exp(eta);
+    } else {
+      this.streakNg++;
+      this.streakOk = 0;
+      // Cắt chuỗi gãy cầu: Thua liên tiếp 2 tay tự động đảo cầu
+      if (this.streakNg >= 2 && !this.reverse) this.reverse = true;
+      this.weights[category] *= Math.exp(-eta);
+    }
+
+    // Chuẩn hóa tổng trọng số về 1.0 (Sum = 1)
+    const sumW = this.weights.momentum + this.weights.statistical + this.weights.quant;
+    this.weights.momentum /= sumW;
+    this.weights.statistical /= sumW;
+    this.weights.quant /= sumW;
+  }
+
+  applyRev(p) {
+    return this.reverse ? (p === "tài" ? "xỉu" : "tài") : p;
+  }
+
+  recentAcc(n = 30) {
+    const r = this.outcomes.slice(-n);
+    if (!r.length) return 0.5;
+    return r.filter(o => o.ok).length / r.length;
+  }
+
+  adjustConf(base) {
+    let c = base;
+    const acc = this.recentAcc(30);
+    if (acc >= 0.75) c += 6;
+    else if (acc >= 0.60) c += 3;
+    else if (acc < 0.40) c -= 6;
+    if (this.streakOk >= 3) c += 4;
+    if (this.reverse) c -= 2;
+    return Math.min(98, Math.max(70, Math.round(c)));
+  }
+
+  status() {
+    return {
+      reverse: this.reverse,
+      streakOk: this.streakOk,
+      streakNg: this.streakNg,
+      acc30: Math.round(this.recentAcc(30) * 100) + "%",
+      weights: {
+        momentum: Math.round(this.weights.momentum * 100) + "%",
+        statistical: Math.round(this.weights.statistical * 100) + "%",
+        quant: Math.round(this.weights.quant * 100) + "%"
+      },
+      lastOutcomes: this.outcomes.slice(-30).reverse() // Xuất chuẩn 30 phiên
+    };
+  }
+}
+
+// --- BỘ LỌC CẢNH BÁO BÃI CẦU BÃO SỐ ---
 class RiskGuard {
   constructor() {
     this.prob = 0;
@@ -266,84 +360,7 @@ class RiskGuard {
   }
 }
 
-class AdaptiveTracker {
-  constructor(game) {
-    this.game = game;
-    this.outcomes = store[game]?.outcomes || [];
-    this.streakOk = 0;
-    this.streakNg = 0;
-    this.reverse = false;
-    this.wPattern = 0.34;
-    this.wStat = 0.36;
-    this.wQuant = 0.30;
-  }
-
-  record(session, pred, actual, src) {
-    const ok = pred === actual;
-    this.outcomes.push({ session, pred, actual, ok, src, ts: Date.now() });
-    if (this.outcomes.length > 250) this.outcomes = this.outcomes.slice(-200);
-    store[this.game].outcomes = this.outcomes;
-    saveStore(store);
-
-    if (ok) {
-      this.streakOk++;
-      this.streakNg = 0;
-      if (this.reverse && this.streakOk >= 2) this.reverse = false;
-      this.adjustWeights(src, 0.02);
-    } else {
-      this.streakNg++;
-      this.streakOk = 0;
-      if (this.streakNg >= 2 && !this.reverse) this.reverse = true;
-      this.adjustWeights(src, -0.03);
-    }
-  }
-
-  adjustWeights(src, delta) {
-    const s = src || "";
-    if (s.includes("bệt") || s.includes("1-1") || s.includes("2-2") || s.includes("tiến") || s.includes("gãy") || s.includes("nhịp")) {
-      this.wPattern = Math.max(0.15, Math.min(0.6, this.wPattern + delta));
-    } else if (s.includes("Markov") || s.includes("sóng") || s.includes("Gauss")) {
-      this.wStat = Math.max(0.15, Math.min(0.6, this.wStat + delta));
-    } else {
-      this.wQuant = Math.max(0.15, Math.min(0.6, this.wQuant + delta));
-    }
-    const sum = this.wPattern + this.wStat + this.wQuant;
-    this.wPattern /= sum; this.wStat /= sum; this.wQuant /= sum;
-  }
-
-  applyRev(p) {
-    return this.reverse ? (p === "tài" ? "xỉu" : "tài") : p;
-  }
-
-  recentAcc(n = 20) {
-    const r = this.outcomes.slice(-n);
-    if (!r.length) return 0.5;
-    return r.filter(o => o.ok).length / r.length;
-  }
-
-  adjustConf(base) {
-    let c = base;
-    const acc = this.recentAcc(20);
-    if (acc >= 0.75) c += 6;
-    else if (acc >= 0.60) c += 3;
-    else if (acc < 0.40) c -= 6;
-    if (this.streakOk >= 3) c += 4;
-    if (this.reverse) c -= 2;
-    return Math.min(98, Math.max(68, Math.round(c)));
-  }
-
-  status() {
-    return {
-      reverse: this.reverse,
-      streakOk: this.streakOk,
-      streakNg: this.streakNg,
-      acc20: Math.round(this.recentAcc(20) * 100) + "%",
-      lastOutcomes: this.outcomes.slice(-20).reverse()
-    };
-  }
-}
-
-// --- ENGINE ĐIỀU HÀNH HELIX TRUNG TÂM ---
+// --- ENGINE ĐIỀU PHỐI HELIX TRUNG TÂM ---
 class HelixEngine {
   constructor(game, url, parse) {
     this.game = game;
@@ -352,11 +369,11 @@ class HelixEngine {
     this.history = [];
     this.sessionIds = new Set();
     this.curId = null;
-    this.patterns = new PatternEngine();
-    this.stat = new StatisticalEngine();
+    this.momentum = new MomentumPatternEngine();
+    this.statistical = new DeepStatisticalEngine();
     this.quant = new EliteQuantEngine();
     this.guard = new RiskGuard();
-    this.tracker = new AdaptiveTracker(game);
+    this.tracker = new AdaptiveMachineLearningTracker(game);
     this.activePred = store[game]?.activePred || null;
     this.timer = null;
   }
@@ -369,8 +386,8 @@ class HelixEngine {
       clearTimeout(timeoutId);
 
       if (!res.ok) return;
-      const data = await res.json();
-      const list = this.parse(data);
+      const rawData = await res.json();
+      const list = this.parse(rawData);
       if (!list || !list.length) return;
 
       const fresh = [];
@@ -432,19 +449,19 @@ class HelixEngine {
     const advice = this.guard.check(this.history);
     const cands = [];
 
-    const p = this.patterns.get(tx);
-    if (p) cands.push({ ...p, w: this.tracker.wPattern });
-    const s = this.stat.get(tx, totals);
-    if (s) cands.push({ ...s, w: this.tracker.wStat });
+    const p = this.momentum.get(tx);
+    if (p) cands.push({ ...p, w: this.tracker.weights.momentum });
+    const s = this.statistical.get(tx, totals);
+    if (s) cands.push({ ...s, w: this.tracker.weights.statistical });
     const q = this.quant.get(this.history);
-    if (q) cands.push({ ...q, w: this.tracker.wQuant });
+    if (q) cands.push({ ...q, w: this.tracker.weights.quant });
 
     let pred, conf, src;
     if (!cands.length) {
       const last = tx[tx.length - 1];
-      pred = last === "T" ? "xỉu" : "tài";
-      conf = 72;
-      src = "Cân bằng động lượng";
+      pred = last === "T" ? "tài" : "xỉu";
+      conf = 75;
+      src = "Bám đà chuyển động";
     } else {
       const score = { "tài": 0, "xỉu": 0 };
       const best = { "tài": null, "xỉu": null };
@@ -462,12 +479,12 @@ class HelixEngine {
         src = best["xỉu"].src;
       }
       const consensus = cands.filter(c => c.pred === pred).length;
-      if (consensus >= 2) conf = Math.min(97, conf + 5);
+      if (consensus >= 2) conf = Math.min(98, conf + 5);
     }
 
     if (advice === "dao_chieu") {
       pred = pred === "tài" ? "xỉu" : "tài";
-      conf = Math.min(97, conf + 4);
+      conf = Math.min(98, conf + 4);
     } else if (advice === "canh_bao") {
       conf = Math.max(68, conf - 5);
     }
@@ -500,21 +517,23 @@ class HelixEngine {
   last() { return this.history.at(-1); }
 }
 
-function parseStream(data) {
-  if (!data || !data.list) return [];
-  return data.list
-    .map(i => ({
-      session: i.id,
-      dice: i.dices,
-      total: i.point,
-      result: i.resultTruyenThong,
-      tx: i.point >= 11 ? "T" : "X"
-    }))
-    .sort((a, b) => a.session - b.session);
+// Bóc tách dữ liệu tương thích đa nguồn (Hỗ trợ cấu trúc mảng hoặc bọc data/list)
+function parseDataFeed(data) {
+  let list = Array.isArray(data) ? data : (data?.data || data?.list || []);
+  if (!Array.isArray(list)) return [];
+  return list.map(i => {
+    const session = Number(i.session || i.id || i.phien || i.Phien || 0);
+    let dice = i.dices || i.dice || i.xucxac || [1, 1, 1];
+    if (typeof dice === "string") dice = dice.split(/[,-]/).map(Number);
+    const total = Number(i.total || i.point || i.diem || (dice[0] + dice[1] + dice[2]));
+    const tx = (i.tx || (total >= 11 ? "T" : "X")).toUpperCase();
+    const result = i.result || (total >= 11 ? "tai" : "xiu");
+    return { session, dice, total, result, tx };
+  }).filter(i => i.session > 0).sort((a, b) => a.session - b.session);
 }
 
-const hu = new HelixEngine("hu", API_HU, parseStream);
-const md5 = new HelixEngine("md5", API_MD5, parseStream);
+const hu = new HelixEngine("hu", API_HU, parseDataFeed);
+const md5 = new HelixEngine("md5", API_MD5, parseDataFeed);
 
 function checkKey(q) {
   const k = q?.key;
@@ -560,10 +579,11 @@ async function bootstrap() {
           reverse: p.reverse,
           cheat: p.cheat
         } : null,
-        acc20: st.acc20,
+        acc30: st.acc30,
         streakOk: st.streakOk,
         streakNg: st.streakNg,
-        outcomes: st.lastOutcomes,
+        weights: st.weights,
+        outcomes: st.lastOutcomes, // 30 phiên
         history: eng.history.slice(-30).reverse().map(h => ({
           s: h.session, d: h.dice, t: h.total, r: h.result.toLowerCase(), tx: h.tx
         }))
@@ -578,7 +598,7 @@ async function bootstrap() {
 
   try {
     await app.listen({ port: PORT, host: "0.0.0.0" });
-    console.log(`[HELIX-VIP] Khởi động thành công trên cổng :${PORT}`);
+    console.log(`[HELIX-QUANT-18] Khởi động thành công trên cổng :${PORT}`);
   } catch (err) {
     console.error(err);
     process.exit(1);
