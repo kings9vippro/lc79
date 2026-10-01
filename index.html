@@ -6,655 +6,591 @@
 <title>HỆ THỐNG ĐỊNH LƯỢNG THỰC CHIẾN // PHẠM ANH KHÔI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --den-tuyen:#000000;
-  --den-card:#09090d;
-  --den-phu:#121218;
-  --vien-do:rgba(239,68,68,0.28);
-  --vien-do-sang:rgba(239,68,68,0.7);
-  --do-chinh:#ef4444;
-  --do-sam:#b91c1c;
-  --do-tuoi:#ff2e43;
-  --do-glow:rgba(239,68,68,0.55);
-  --chu-chinh:#ffffff;
-  --chu-phu:#cbd5e1;
-  --chu-mo:#64748b;
+  --bg-canvas: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f1f5f9;
+  --border-color: #e2e8f0;
+  --border-hover: #cbd5e1;
+  --red-main: #dc2626;
+  --red-deep: #b91c1c;
+  --red-soft: #fef2f2;
+  --red-border: #fecaca;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --win-bg: #ecfdf5;
+  --win-text: #059669;
+  --win-border: #a7f3d0;
+  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04);
 }
 
 html,body{
-  touch-action:manipulation;
-  background-color:var(--den-tuyen);
-  background-image:
-    radial-gradient(circle at 10% 15%,rgba(239,68,68,0.09) 0%,transparent 35%),
-    radial-gradient(circle at 90% 85%,rgba(185,28,28,0.09) 0%,transparent 40%),
-    linear-gradient(rgba(239,68,68,0.02) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(239,68,68,0.02) 1px,transparent 1px);
-  background-size:100% 100%,100% 100%,32px 32px,32px 32px;
-  color:var(--chu-chinh);
-  font-family:'Plus Jakarta Sans',sans-serif;
-  min-height:100vh;
-  overflow-x:hidden;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+  line-height: 1.5;
+  overflow-x: hidden;
 }
 
 .mono{font-family:'JetBrains Mono',monospace}
-.khung-chinh{max-width:1380px;margin:0 auto;padding:16px;}
+.container-app{max-width:1360px;margin:0 auto;padding:20px;}
 
-/* ======================================================== */
-/* MÀN HÌNH KHÓA BẢO MẬT (BẮT BUỘC NHẬP MẬT KHẨU MỚI VÀO ĐƯỢC) */
-/* ======================================================== */
 #man-hinh-khoa{
-  position:fixed;inset:0;background:#000000;z-index:999999;
-  display:flex;align-items:center;justify-content:center;padding:20px;
+  position:fixed;inset:0;background:rgba(15,23,42,0.65);
+  backdrop-filter:blur(10px);z-index:999999;display:flex;
+  align-items:center;justify-content:center;padding:16px;
 }
-.hop-khoa{
-  background:var(--den-card);border:1px solid var(--vien-do-sang);border-radius:32px;
-  padding:40px 28px;max-width:440px;width:100%;text-align:center;
-  box-shadow:0 0 50px rgba(239,68,68,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
-  display:flex;flex-direction:column;align-items:center;gap:18px;
+.box-auth{
+  background:var(--bg-surface);border:1px solid var(--border-color);border-radius:24px;
+  padding:36px 32px;max-width:440px;width:100%;text-align:center;
+  box-shadow:var(--shadow-lg);display:flex;flex-direction:column;align-items:center;gap:18px;
 }
-.icon-khoa-lon{
-  width:72px;height:72px;border-radius:9999px;background:rgba(239,68,68,0.12);
-  border:2px solid var(--do-chinh);display:flex;align-items:center;justify-content:center;
-  color:var(--do-chinh);box-shadow:0 0 25px var(--do-glow);
+.shield-icon{
+  width:64px;height:64px;border-radius:18px;background:var(--red-soft);
+  border:1px solid var(--red-border);display:flex;align-items:center;
+  justify-content:center;color:var(--red-main);
 }
-.icon-khoa-lon svg{width:36px;height:36px;}
-.hop-khoa h2{
-  font-size:1.35rem;font-weight:900;letter-spacing:0.04em;text-transform:uppercase;
-  color:var(--chu-chinh);line-height:1.2;
+.shield-icon svg{width:32px;height:32px;}
+.box-auth h2{
+  font-size:1.25rem;font-weight:800;letter-spacing:-0.02em;
+  color:var(--text-primary);text-transform:uppercase;
 }
-.hop-khoa .dong-tac-gia-khoa{
-  font-size:0.85rem;font-weight:800;color:var(--do-chinh);margin-top:-6px;
+.box-auth .author-tag{
+  font-size:0.8rem;font-weight:700;color:var(--red-main);
+  background:var(--red-soft);padding:4px 12px;border-radius:9999px;
+  border:1px solid var(--red-border);
 }
-.hop-khoa .dong-mo-ta{
-  font-size:0.8rem;color:var(--chu-phu);line-height:1.4;
+.box-auth p{font-size:0.85rem;color:var(--text-secondary);line-height:1.45;}
+
+.input-auth-group{
+  width:100%;background:var(--bg-canvas);border:1.5px solid var(--border-color);
+  border-radius:14px;padding:10px 16px;display:flex;align-items:center;gap:12px;
+  transition:all 0.2s;
+}
+.input-auth-group:focus-within{
+  border-color:var(--red-main);background:#fff;
+  box-shadow:0 0 0 3px rgba(220,38,38,0.12);
+}
+.input-auth-group svg{width:20px;height:20px;color:var(--text-muted);flex-shrink:0;}
+.input-auth-group input{
+  background:transparent;border:none;color:var(--text-primary);
+  font-size:0.95rem;outline:none;width:100%;font-weight:600;
 }
 
-.khung-nhap-khoa{
-  width:100%;background:var(--den-phu);border:1px solid var(--vien-do);
-  border-radius:9999px;padding:8px 18px;display:flex;align-items:center;gap:10px;
-  transition:all 0.25s;
+.btn-primary-red{
+  background:var(--red-main);color:#ffffff;border:none;padding:12px 28px;
+  border-radius:14px;font-weight:700;font-size:0.9rem;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 2px 10px rgba(220,38,38,0.3);transition:all 0.2s;width:100%;
 }
-.khung-nhap-khoa:focus-within{
-  border-color:var(--do-tuoi);box-shadow:0 0 20px rgba(239,68,68,0.4);
+.btn-primary-red:hover{background:var(--red-deep);transform:translateY(-1px);}
+.btn-primary-red:active{transform:translateY(0);}
+.btn-primary-red svg{width:18px;height:18px;}
+
+.btn-ghost{
+  background:var(--bg-surface);color:var(--text-secondary);
+  border:1px solid var(--border-color);padding:8px 18px;border-radius:12px;
+  font-weight:700;font-size:0.82rem;cursor:pointer;display:inline-flex;
+  align-items:center;gap:8px;transition:all 0.2s;
 }
-.khung-nhap-khoa svg{width:18px;height:18px;color:var(--do-chinh);flex-shrink:0;}
-.khung-nhap-khoa input{
-  background:transparent;border:none;color:var(--chu-chinh);font-size:15px;
-  outline:none;width:100%;text-align:center;
+.btn-ghost:hover{
+  background:var(--bg-subtle);color:var(--text-primary);
+  border-color:var(--border-hover);
+}
+.btn-ghost svg{width:16px;height:16px;}
+
+.auth-error{
+  font-size:0.8rem;color:var(--red-main);font-weight:700;display:none;
 }
 
-/* CÁC NÚT DẠNG VIÊN THUỐC (PILL BUTTONS) */
-.nut-vien-thuoc-do{
-  background:linear-gradient(135deg,#ef4444 0%,#b91c1c 100%);
-  color:#fff;border:none;padding:12px 32px;border-radius:9999px;
-  font-weight:800;font-size:0.9rem;cursor:pointer;letter-spacing:0.04em;
-  display:inline-flex;align-items:center;justify-content:center;gap:10px;
-  box-shadow:0 4px 22px rgba(239,68,68,0.45);transition:all 0.2s;width:100%;
-}
-.nut-vien-thuoc-do:hover{
-  transform:translateY(-1px);box-shadow:0 6px 28px rgba(239,68,68,0.65);
-}
-.nut-vien-thuoc-do:active{transform:translateY(1px);}
-.nut-vien-thuoc-do svg{width:18px;height:18px;}
-
-.nut-vien-thuoc-vien{
-  background:rgba(239,68,68,0.06);color:var(--chu-chinh);
-  border:1px solid var(--vien-do);padding:9px 22px;border-radius:9999px;
-  font-weight:800;font-size:0.8rem;cursor:pointer;display:inline-flex;
-  align-items:center;gap:8px;transition:all 0.2s;text-decoration:none;
-}
-.nut-vien-thuoc-vien:hover{
-  background:rgba(239,68,68,0.18);border-color:var(--do-chinh);color:#fff;
-  box-shadow:0 0 16px rgba(239,68,68,0.3);
-}
-.nut-vien-thuoc-vien svg{width:15px;height:15px;}
-
-.thong-bao-khoa{
-  font-size:0.82rem;color:var(--do-tuoi);font-weight:800;display:none;
-}
-
-/* ======================================================== */
-/* HEADER BẢN QUYỀN ĐEN ĐỎ                                   */
-/* ======================================================== */
 header{
-  background:var(--den-card);border:1px solid var(--vien-do);border-radius:28px;
-  padding:16px 24px;margin-bottom:16px;display:flex;justify-content:space-between;
-  align-items:center;flex-wrap:wrap;gap:14px;
-  box-shadow:0 12px 40px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
+  background:var(--bg-surface);border:1px solid var(--border-color);border-radius:20px;
+  padding:16px 24px;margin-bottom:20px;display:flex;justify-content:space-between;
+  align-items:center;flex-wrap:wrap;gap:16px;box-shadow:var(--shadow-sm);
 }
-
-.nhom-brand{display:flex;align-items:center;gap:16px;}
-.khung-logo-do{
-  width:52px;height:52px;border-radius:9999px;background:rgba(239,68,68,0.1);
-  border:2px solid var(--do-chinh);display:flex;align-items:center;justify-content:center;
-  color:var(--do-chinh);box-shadow:0 0 20px rgba(239,68,68,0.35);flex-shrink:0;
+.header-brand{display:flex;align-items:center;gap:14px;}
+.logo-badge{
+  width:46px;height:46px;border-radius:14px;background:var(--red-main);
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 12px rgba(220,38,38,0.25);flex-shrink:0;
 }
-.khung-logo-do svg{width:26px;height:26px;}
-
-.chi-tiet-brand h1{
-  font-size:1.3rem;font-weight:900;letter-spacing:0.04em;line-height:1.2;
-  color:#ffffff;display:flex;align-items:center;gap:10px;text-transform:uppercase;
+.logo-badge svg{width:24px;height:24px;}
+.brand-info h1{
+  font-size:1.15rem;font-weight:800;letter-spacing:-0.02em;color:var(--text-primary);
+  display:flex;align-items:center;gap:8px;
 }
-.badge-pro{
-  font-size:0.65rem;font-weight:900;background:var(--do-sam);color:#ffffff;
-  padding:3px 10px;border-radius:9999px;border:1px solid var(--do-chinh);
-  letter-spacing:0.06em;
+.tag-pro{
+  font-size:0.65rem;font-weight:800;background:var(--red-soft);color:var(--red-main);
+  padding:2px 8px;border-radius:6px;border:1px solid var(--red-border);
 }
-.dong-tac-gia{font-size:0.8rem;font-weight:800;color:var(--do-chinh);display:flex;align-items:center;gap:6px;margin-top:2px;}
-.dong-tac-gia svg{width:14px;height:14px;}
-.dong-tele{font-size:0.78rem;color:var(--chu-phu);display:flex;align-items:center;gap:6px;margin-top:2px;}
-.dong-tele a{color:var(--do-chinh);text-decoration:none;font-weight:800;}
-.dong-tele a:hover{text-decoration:underline;}
+.meta-author{font-size:0.78rem;font-weight:600;color:var(--text-secondary);margin-top:2px;}
+.meta-author a{color:var(--red-main);text-decoration:none;font-weight:700;}
 
-.nhom-nut-header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.header-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 
-/* THANH ĐIỀU HƯỚNG TABS DẠNG VIÊN THUỐC */
-.thanh-trang-thai{
+.nav-status-bar{
   display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;
-  gap:12px;margin-bottom:16px;padding:2px 4px;
+  gap:12px;margin-bottom:20px;
 }
-.khung-tabs-vien-thuoc{
-  display:inline-flex;background:var(--den-phu);border:1px solid var(--vien-do);
-  border-radius:9999px;padding:4px;gap:4px;
+.tabs-wrapper{
+  display:inline-flex;background:var(--bg-surface);border:1px solid var(--border-color);
+  border-radius:14px;padding:4px;gap:4px;box-shadow:var(--shadow-sm);
 }
-.tab-pill{
-  background:transparent;border:none;color:var(--chu-phu);padding:8px 20px;
-  border-radius:9999px;font-size:0.82rem;font-weight:800;cursor:pointer;
-  display:inline-flex;align-items:center;gap:6px;transition:all 0.2s;
+.tab-btn{
+  background:transparent;border:none;color:var(--text-secondary);padding:8px 18px;
+  border-radius:10px;font-size:0.82rem;font-weight:700;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;
 }
-.tab-pill.active{
-  background:linear-gradient(135deg,#ef4444 0%,#991b1b 100%);
-  color:#fff;box-shadow:0 0 16px rgba(239,68,68,0.5);
+.tab-btn.active{
+  background:var(--red-main);color:#ffffff;
+  box-shadow:0 2px 8px rgba(220,38,38,0.25);
 }
-.tab-pill svg{width:15px;height:15px;}
+.tab-btn svg{width:16px;height:16px;}
 
-.chi-so-ket-noi{
-  display:flex;align-items:center;gap:12px;font-size:0.8rem;color:var(--chu-phu);
+.metrics-telemetry{
+  display:flex;align-items:center;gap:12px;font-size:0.8rem;color:var(--text-secondary);
 }
-.badge-status{
-  display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,0.12);
-  border:1px solid var(--vien-do);padding:4px 14px;border-radius:9999px;
-  font-weight:800;color:var(--do-chinh);
+.badge-ping{
+  display:inline-flex;align-items:center;gap:6px;background:var(--bg-surface);
+  border:1px solid var(--border-color);padding:6px 14px;border-radius:10px;
+  font-weight:700;box-shadow:var(--shadow-sm);
 }
-.cham-status{width:7px;height:7px;border-radius:50%;background:var(--do-tuoi);box-shadow:0 0 8px var(--do-tuoi);}
+.dot-live{
+  width:8px;height:8px;border-radius:50%;background:#10b981;
+  box-shadow:0 0 6px rgba(16,185,129,0.5);
+}
 
-/* ======================================================== */
-/* LƯỚI BÀN CHƠI                                           */
-/* ======================================================== */
-.luoi-chinh{display:grid;grid-template-columns:repeat(auto-fit,minmax(480px,1fr));gap:20px;}
-@media(max-width:600px){
-  .luoi-chinh{grid-template-columns:1fr;}
-  .khung-chinh{padding:10px;}
+.bento-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(520px,1fr));gap:24px;
+}
+@media(max-width:640px){
+  .bento-grid{grid-template-columns:1fr;}
+  .container-app{padding:12px;}
   header{padding:14px 16px;}
 }
 
-.the-ban{
-  background:var(--den-card);border:1px solid var(--vien-do);border-radius:28px;
-  padding:24px;display:flex;flex-direction:column;gap:18px;
-  box-shadow:0 16px 40px rgba(0,0,0,0.8);position:relative;overflow:hidden;
+.table-card{
+  background:var(--bg-surface);border:1px solid var(--border-color);border-radius:22px;
+  padding:24px;display:flex;flex-direction:column;gap:20px;box-shadow:var(--shadow-md);
+  position:relative;
 }
-.the-ban::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,var(--do-chinh),transparent);
+.table-card-header{display:flex;justify-content:space-between;align-items:center;}
+.table-title{
+  font-size:1.05rem;font-weight:800;display:flex;align-items:center;gap:10px;
+  color:var(--text-primary);
 }
+.table-title svg{width:22px;height:22px;color:var(--red-main);}
 
-.dau-the-ban{display:flex;justify-content:space-between;align-items:center;}
-.ten-ban{font-size:1.15rem;font-weight:900;display:flex;align-items:center;gap:8px;color:#fff;}
-.ten-ban svg{width:20px;height:20px;color:var(--do-chinh);}
-
-.tag-thuat-toan-pill{
-  font-size:0.75rem;font-weight:800;background:rgba(239,68,68,0.1);
-  border:1px solid var(--vien-do);color:var(--do-tuoi);padding:5px 14px;
+.pill-algo{
+  font-size:0.75rem;font-weight:700;background:var(--red-soft);
+  border:1px solid var(--red-border);color:var(--red-main);padding:4px 12px;
   border-radius:9999px;display:inline-flex;align-items:center;gap:6px;
 }
-.tag-thuat-toan-pill svg{width:13px;height:13px;}
 
-/* BUỒNG TÍN HIỆU */
-.buong-tin-hieu-do{
-  background:radial-gradient(ellipse at center,rgba(239,68,68,0.12) 0%,rgba(0,0,0,0.95) 85%);
-  border:1px solid var(--vien-do-sang);border-radius:24px;padding:26px 14px;
-  text-align:center;box-shadow:inset 0 0 30px rgba(0,0,0,0.9);
+.signal-chamber{
+  background:linear-gradient(180deg, var(--red-soft) 0%, #ffffff 100%);
+  border:1.5px solid var(--red-border);border-radius:20px;padding:28px 16px;
+  text-align:center;box-shadow:inset 0 1px 3px rgba(220,38,38,0.04);
 }
-.chu-tin-hieu{
-  font-size:5.2rem;font-weight:900;line-height:1;text-transform:uppercase;
-  letter-spacing:-0.03em;color:var(--do-tuoi);
-  text-shadow:0 0 35px var(--do-glow);transition:all 0.3s;
+.signal-display{
+  font-size:4.8rem;font-weight:900;line-height:1;letter-spacing:-0.03em;
+  color:var(--red-main);text-shadow:0 2px 10px rgba(220,38,38,0.15);
 }
-
-.thong-tin-tin-hieu{
+.signal-tele-row{
   display:flex;justify-content:center;align-items:center;flex-wrap:wrap;
-  gap:10px;margin-top:16px;
+  gap:8px;margin-top:16px;
 }
-.pill-thong-tin{
-  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
-  border-radius:9999px;padding:5px 16px;font-size:0.82rem;color:var(--chu-phu);
-  display:inline-flex;align-items:center;gap:6px;
+.chip-meta{
+  background:var(--bg-surface);border:1px solid var(--border-color);
+  border-radius:10px;padding:5px 14px;font-size:0.8rem;color:var(--text-secondary);
+  font-weight:600;display:inline-flex;align-items:center;gap:6px;
+  box-shadow:var(--shadow-sm);
 }
-.pill-thong-tin svg{width:14px;height:14px;color:var(--do-chinh);}
-.pill-canh-bao{
-  background:rgba(239,68,68,0.2);border:1px solid var(--do-chinh);
-  color:var(--do-tuoi);font-weight:900;border-radius:9999px;padding:5px 16px;
-  font-size:0.82rem;display:inline-flex;align-items:center;gap:6px;
-}
-
-.hop-nut-copy{margin-top:16px;}
-
-/* THÔNG SỐ NHANH */
-.luoi-thong-so{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-.o-thong-so-do{
-  background:var(--den-phu);border:1px solid var(--vien-do);border-radius:18px;
-  padding:12px 6px;text-align:center;
-}
-.o-thong-so-do .nhan{font-size:0.68rem;font-weight:800;color:var(--chu-mo);text-transform:uppercase;margin-bottom:4px;}
-.o-thong-so-do .gia-tri{font-size:1.05rem;font-weight:800;color:#fff;}
-
-/* XÚC XẮC ĐỎ ĐEN */
-.vung-xuc-xac{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px;}
-.vien-xuc-xac{
-  width:24px;height:24px;border-radius:6px;background:#fff;color:#000;
-  display:inline-flex;align-items:center;justify-content:center;font-weight:900;
-  font-size:0.85rem;box-shadow:0 2px 6px rgba(0,0,0,0.5);
+.chip-meta b{color:var(--text-primary);}
+.chip-warn{
+  background:var(--red-main);color:#ffffff;border-radius:10px;
+  padding:5px 14px;font-size:0.8rem;font-weight:700;display:inline-flex;
+  align-items:center;gap:6px;
 }
 
-/* ======================================================== */
-/* KHỐI 30 PHIÊN ĐÚNG SAI DẠNG VIÊN THUỐC                   */
-/* ======================================================== */
-.hop-kiem-dinh-30{
-  background:var(--den-phu);border:1px solid var(--vien-do);border-radius:24px;padding:18px;
+.copy-wrapper{margin-top:16px;}
+
+.stat-quad{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.stat-quad-box{
+  background:var(--bg-canvas);border:1px solid var(--border-color);
+  border-radius:14px;padding:12px 6px;text-align:center;
 }
-.dau-hop-30{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
-.tieu-de-hop-30{
-  font-size:0.85rem;font-weight:900;text-transform:uppercase;color:var(--chu-phu);
+.stat-quad-box .lbl{
+  font-size:0.68rem;font-weight:700;color:var(--text-muted);
+  text-transform:uppercase;margin-bottom:4px;
+}
+.stat-quad-box .val{
+  font-size:1.05rem;font-weight:800;color:var(--text-primary);
+}
+.dice-row{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:2px;}
+.dice-cube{
+  width:22px;height:22px;border-radius:6px;background:var(--bg-surface);
+  border:1px solid var(--border-color);color:var(--red-main);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:0.8rem;box-shadow:var(--shadow-sm);
+}
+
+.audit-panel{
+  background:var(--bg-surface);border:1px solid var(--border-color);
+  border-radius:18px;padding:18px;
+}
+.audit-header{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;
+}
+.audit-title{
+  font-size:0.82rem;font-weight:800;text-transform:uppercase;color:var(--text-primary);
   display:flex;align-items:center;gap:8px;
 }
-.tieu-de-hop-30 svg{width:16px;height:16px;color:var(--do-chinh);}
+.audit-title svg{width:16px;height:16px;color:var(--red-main);}
 
-.pill-ti-le-30{
-  font-size:0.8rem;font-weight:900;padding:5px 16px;border-radius:9999px;
-  background:rgba(239,68,68,0.18);color:var(--do-tuoi);border:1px solid var(--do-chinh);
+.pill-winrate{
+  font-size:0.8rem;font-weight:800;padding:4px 14px;border-radius:9999px;
+  background:var(--win-bg);color:var(--win-text);border:1px solid var(--win-border);
 }
 
-.thong-ke-30-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
-.o-thong-ke-30{
-  background:rgba(0,0,0,0.4);border:1px solid rgba(239,68,68,0.15);
-  border-radius:16px;padding:10px 8px;text-align:center;
+.audit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.audit-stat-box{
+  background:var(--bg-canvas);border:1px solid var(--border-color);
+  border-radius:12px;padding:10px 8px;text-align:center;
 }
-.o-thong-ke-30 .lbl{font-size:0.68rem;font-weight:800;color:var(--chu-mo);text-transform:uppercase;}
-.o-thong-ke-30 .val{font-size:1.15rem;font-weight:900;color:#fff;margin-top:2px;}
+.audit-stat-box .lbl{font-size:0.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;}
+.audit-stat-box .val{font-size:1.1rem;font-weight:800;color:var(--text-primary);margin-top:2px;}
 
-/* DẢI 30 VIÊN THUỐC MINI */
-.dai-ribbon-30{display:grid;grid-template-columns:repeat(15,1fr);gap:4px;margin-bottom:14px;}
-@media(max-width:500px){
-  .dai-ribbon-30{grid-template-columns:repeat(10,1fr);}
+.ribbon-matrix{display:grid;grid-template-columns:repeat(15,1fr);gap:4px;margin-bottom:14px;}
+@media(max-width:520px){.ribbon-matrix{grid-template-columns:repeat(10,1fr);}}
+.dot-check{
+  height:24px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:0.75rem;font-weight:800;transition:transform 0.15s;cursor:default;
 }
-.mini-pill{
-  height:24px;border-radius:9999px;display:flex;align-items:center;justify-content:center;
-  font-size:0.7rem;font-weight:900;transition:all 0.2s;cursor:default;
+.dot-check.w{
+  background:var(--win-bg);color:var(--win-text);border:1px solid var(--win-border);
 }
-.mini-pill.w{
-  background:rgba(239,68,68,0.25);color:var(--do-tuoi);border:1px solid var(--do-chinh);
-  box-shadow:0 0 6px rgba(239,68,68,0.4);
+.dot-check.l{
+  background:var(--bg-canvas);color:var(--text-muted);border:1px solid var(--border-color);
 }
-.mini-pill.l{
-  background:#09090c;color:var(--chu-mo);border:1px solid rgba(255,255,255,0.08);
-}
-.mini-pill:hover{transform:scale(1.2);z-index:2;}
+.dot-check:hover{transform:scale(1.15);z-index:2;}
 
-/* DANH SÁCH CUỘN 30 PHIÊN */
-.cuon-danh-sach-30{
-  max-height:240px;overflow-y:auto;border-radius:16px;background:#030305;
-  border:1px solid rgba(239,68,68,0.1);padding:4px 0;
+.audit-scroll-list{
+  max-height:220px;overflow-y:auto;border-radius:12px;background:var(--bg-canvas);
+  border:1px solid var(--border-color);padding:2px 0;
 }
-.cuon-danh-sach-30::-webkit-scrollbar{width:4px;}
-.cuon-danh-sach-30::-webkit-scrollbar-thumb{background:var(--do-sam);border-radius:2px;}
+.audit-scroll-list::-webkit-scrollbar{width:4px;}
+.audit-scroll-list::-webkit-scrollbar-thumb{background:var(--border-hover);border-radius:2px;}
 
-.hang-kiem-dinh{
-  display:flex;align-items:center;padding:10px 14px;font-size:0.8rem;
-  border-bottom:1px solid rgba(255,255,255,0.03);
+.audit-row{
+  display:flex;align-items:center;padding:8px 12px;font-size:0.8rem;
+  border-bottom:1px solid var(--border-color);
 }
-.hang-kiem-dinh:last-child{border-bottom:none;}
-.pill-ket-qua{
-  font-size:0.7rem;font-weight:900;padding:3px 12px;border-radius:9999px;margin-right:12px;
+.audit-row:last-child{border-bottom:none;}
+.pill-result-tag{
+  font-size:0.7rem;font-weight:800;padding:2px 10px;border-radius:6px;margin-right:10px;
   display:inline-flex;align-items:center;gap:4px;
 }
-.pill-ket-qua.w{
-  background:rgba(239,68,68,0.22);color:var(--do-tuoi);border:1px solid var(--do-chinh);
+.pill-result-tag.w{
+  background:var(--win-bg);color:var(--win-text);border:1px solid var(--win-border);
 }
-.pill-ket-qua.l{
-  background:rgba(255,255,255,0.05);color:var(--chu-mo);border:1px solid rgba(255,255,255,0.1);
-}
-
-/* TOAST THÔNG BÁO */
-.toast-msg{
-  position:fixed;bottom:24px;right:24px;background:#0f0f14;border:1px solid var(--do-chinh);
-  color:#fff;padding:12px 24px;border-radius:9999px;font-size:0.85rem;font-weight:800;
-  box-shadow:0 10px 30px rgba(239,68,68,0.4);z-index:999999;display:none;align-items:center;gap:8px;
+.pill-result-tag.l{
+  background:var(--red-soft);color:var(--red-main);border:1px solid var(--red-border);
 }
 
-/* FOOTER */
+.toast-notice{
+  position:fixed;bottom:24px;right:24px;background:var(--text-primary);color:#fff;
+  padding:12px 22px;border-radius:12px;font-size:0.85rem;font-weight:700;
+  box-shadow:var(--shadow-lg);z-index:999999;display:none;align-items:center;gap:10px;
+}
+
 footer{
-  margin-top:36px;padding:24px;text-align:center;font-size:0.82rem;color:var(--chu-mo);
-  border-top:1px solid var(--vien-do);display:flex;flex-direction:column;align-items:center;gap:8px;
+  margin-top:36px;padding:24px;text-align:center;font-size:0.82rem;color:var(--text-secondary);
+  border-top:1px solid var(--border-color);display:flex;flex-direction:column;
+  align-items:center;gap:6px;
 }
-footer a{color:var(--do-chinh);text-decoration:none;font-weight:800;}
+footer a{color:var(--red-main);text-decoration:none;font-weight:700;}
 </style>
 </head>
 <body>
 
-<!-- ======================================================== -->
-<!-- MÀN HÌNH KHÓA BẢO MẬT (CHỈ MỞ KHI NHẬP ĐÚNG KEY)        -->
-<!-- ======================================================== -->
 <div id="man-hinh-khoa">
-  <div class="hop-khoa">
-    <div class="icon-khoa-lon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+  <div class="box-auth">
+    <div class="shield-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
     </div>
     <h2>XÁC THỰC BẢN QUYỀN</h2>
-    <div class="dong-tac-gia-khoa">PHẠM ANH KHÔI // HỆ THỐNG ĐỊNH LƯỢNG</div>
-    <div class="dong-mo-ta">Hệ thống bảo mật nghiêm ngặt. Vui lòng nhập mật khẩu chính thức để truy cập toàn bộ dữ liệu bàn chơi.</div>
+    <div class="author-tag mono">PHẠM ANH KHÔI</div>
+    <p>Hệ thống định lượng bắt cầu thời gian thực. Vui lòng cung cấp mật khẩu truy cập để giải mã dữ liệu luồng bàn cược.</p>
 
-    <div class="khung-nhap-khoa">
+    <div class="input-auth-group">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6M15.5 7.5l3 3"/></svg>
-      <input type="password" id="input-key" class="mono" placeholder="Nhập mật khẩu bản quyền..." autocomplete="off">
+      <input type="password" id="input-key" class="mono" placeholder="Nhập mã truy cập bản quyền..." autocomplete="off">
     </div>
 
-    <div id="bao-loi-khoa" class="thong-bao-khoa mono">MÃ BẢN QUYỀN KHÔNG CHÍNH XÁC</div>
+    <div id="auth-err" class="auth-error mono">MÃ BẢN QUYỀN KHÔNG CHÍNH XÁC</div>
 
-    <button class="nut-vien-thuoc-do" id="btn-unlock">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    <button class="btn-primary-red" id="btn-unlock">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
       MỞ KHÓA HỆ THỐNG
     </button>
 
-    <div style="font-size:0.75rem;color:var(--chu-mo);margin-top:4px;">
-      Bản quyền tác giả: <b>Phạm Anh Khôi</b> · Telegram: <a href="https://t.me/anhkhoi_xabc" target="_blank" style="color:var(--do-chinh);text-decoration:none;font-weight:700">@anhkhoi_xabc</a>
+    <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">
+      Tác giả: <b>Phạm Anh Khôi</b> · Telegram: <a href="https://t.me/anhkhoi_xabc" target="_blank" style="color:var(--red-main);font-weight:700;text-decoration:none">@anhkhoi_xabc</a>
     </div>
   </div>
 </div>
 
-<!-- ======================================================== -->
-<!-- GIAO DIỆN CHÍNH (ĐEN & ĐỎ - NÚT VIÊN THUỐC)              -->
-<!-- ======================================================== -->
-<div class="khung-chinh" id="giao-dien-chinh" style="display:none !important">
-  <!-- HEADER -->
+<div class="container-app" id="giao-dien-chinh" style="display:none !important">
   <header>
-    <div class="nhom-brand">
-      <div class="khung-logo-do">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    <div class="header-brand">
+      <div class="logo-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
       </div>
-      <div class="chi-tiet-brand">
+      <div class="brand-info">
         <h1>
-          HỆ THỐNG ĐỊNH LƯỢNG THỰC CHIẾN
-          <span class="badge-pro mono">PRO</span>
+          HỆ THỐNG BẮT CẦU LC79
+          <span class="tag-pro mono">BỊP.Co</span>
         </h1>
-        <div class="dong-tac-gia">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          Bản quyền tác giả: Phạm Anh Khôi
-        </div>
-        <div class="dong-tele">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          Telegram liên hệ: <a href="https://t.me/anhkhoi_xabc" target="_blank">@anhkhoi_xabc</a>
+        <div class="meta-author">
+          Bản quyền tác giả: <b>Phạm Anh Khôi</b> · Liên hệ: <a href="https://t.me/anhkhoi_xabc" target="_blank">@anhkhoi_xabc</a>
         </div>
       </div>
     </div>
 
-    <div class="nhom-nut-header">
-      <!-- NÚT BẬT/TẮT ÂM THANH DẠNG VIÊN THUỐC -->
-      <button class="nut-vien-thuoc-vien" id="btn-sound">
+    <div class="header-controls">
+      <button class="btn-ghost" id="btn-sound">
         <svg id="icon-sound" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
         <span id="txt-sound">ÂM BÁO: BẬT</span>
       </button>
 
-      <!-- NÚT ĐỒNG BỘ THỦ CÔNG DẠNG VIÊN THUỐC -->
-      <button class="nut-vien-thuoc-vien" id="btn-sync">
+      <button class="btn-ghost" id="btn-sync">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-        LÀM MỚI
+        ĐỒNG BỘ
       </button>
 
-      <!-- NÚT KHÓA HỆ THỐNG DẠNG VIÊN THUỐC -->
-      <button class="nut-vien-thuoc-do" id="btn-lock" style="width:auto;padding:9px 24px;">
+      <button class="btn-primary-red" id="btn-lock" style="width:auto;padding:8px 20px;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        KHÓA HỆ THỐNG
+        KHÓA
       </button>
     </div>
   </header>
 
-  <!-- THANH TRẠNG THÁI & TABS DẠNG VIÊN THUỐC -->
-  <div class="thanh-trang-thai">
-    <div class="khung-tabs-vien-thuoc">
-      <button class="tab-pill active" data-tab="all">
+  <div class="nav-status-bar">
+    <div class="tabs-wrapper">
+      <button class="tab-btn active" data-tab="all">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-        Tất Cả (Song Song)
+        Toàn Bộ Bàn Cược
       </button>
-      <button class="tab-pill" data-tab="hu">
+      <button class="tab-btn" data-tab="hu">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24M14.83 9.17l4.24-4.24M14.83 14.83l4.24 4.24M9.17 14.83l-4.24 4.24"/></svg>
         TX Truyền Thống
       </button>
-      <button class="tab-pill" data-tab="md5">
+      <button class="tab-btn" data-tab="md5">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         TX MD5
       </button>
     </div>
 
-    <div class="chi-so-ket-noi mono">
-      <div class="badge-status">
-        <span class="cham-status"></span>
-        <span id="txt-status">KẾT NỐI ỔN ĐỊNH</span>
+    <div class="metrics-telemetry mono">
+      <div class="badge-ping">
+        <span class="dot-live"></span>
+        <span id="txt-status" style="color:var(--text-primary)">KẾT NỐI TRỰC TIẾP</span>
       </div>
-      <span>PING: <b id="txt-ping" style="color:#fff">24ms</b></span>
-      <span>ĐỒNG BỘ: <b id="txt-countdown" style="color:var(--do-tuoi)">3s</b></span>
+      <span>PING: <b id="txt-ping" style="color:var(--text-primary)">--ms</b></span>
+      <span>LÀM MỚI: <b id="txt-countdown" style="color:var(--red-main)">3s</b></span>
     </div>
   </div>
 
-  <!-- TOAST THÔNG BÁO -->
-  <div id="toast" class="toast-msg mono">
+  <div id="toast" class="toast-notice mono">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-    <span id="toast-txt">Đã sao chép tín hiệu!</span>
+    <span id="toast-txt">Đã sao chép lệnh cược!</span>
   </div>
 
-  <!-- LƯỚI BÀN CHƠI -->
-  <div class="luoi-chinh">
-    
-    <!-- PANEL 1: TÀI XỈU TRUYỀN THỐNG -->
-    <div class="the-ban" id="panel-hu">
-      <div class="dau-the-ban">
-        <div class="ten-ban">
+  <div class="bento-grid">
+    <div class="table-card" id="panel-hu">
+      <div class="table-card-header">
+        <div class="table-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 12l-4-4-4 4M12 16V8"/></svg>
-          TÀI XỈU HŨ
+          TÀI XỈU TRUYỀN THỐNG
         </div>
-        <span class="tag-thuat-toan-pill mono" id="hu-algo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+        <span class="pill-algo mono" id="hu-algo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>
           <span id="hu-algo-txt">ĐANG BẮT NHỊP</span>
         </span>
       </div>
 
-      <!-- BUỒNG TÍN HIỆU -->
-      <div class="buong-tin-hieu-do">
-        <div class="chu-tin-hieu mono" id="hu-pred">—</div>
-        <div class="thong-tin-tin-hieu mono">
-          <span class="pill-thong-tin">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
-            PHIÊN: <b id="hu-target" style="color:#fff">—</b>
+      <div class="signal-chamber">
+        <div class="signal-display mono" id="hu-pred">—</div>
+        <div class="signal-tele-row mono">
+          <span class="chip-meta">
+            PHIÊN: <b id="hu-target">—</b>
           </span>
-          <span class="pill-thong-tin">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
-            TIN CẬY: <b id="hu-conf" style="color:#fff">—</b>
+          <span class="chip-meta">
+            TIN CẬY: <b id="hu-conf">—</b>
           </span>
-          <span id="hu-flag" class="pill-canh-bao" style="display:none">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span id="hu-flag" class="chip-warn" style="display:none">
             ĐẢO NHỊP BẢO VỆ
           </span>
         </div>
 
-        <div class="hop-nut-copy">
-          <button class="nut-vien-thuoc-do" style="width:auto;padding:10px 28px;" onclick="copySignal('hu')">
+        <div class="copy-wrapper">
+          <button class="btn-primary-red" style="width:auto;padding:10px 28px;" onclick="copySignal('hu')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            SAO CHÉP LỆNH
+            SAO CHÉP LỆNH PHIÊN
           </button>
         </div>
       </div>
 
-      <!-- DÃY THÔNG SỐ -->
-      <div class="luoi-thong-so mono">
-        <div class="o-thong-so-do">
-          <div class="nhan">Phiên Trước</div>
-          <div class="gia-tri" id="hu-prev">—</div>
+      <div class="stat-quad mono">
+        <div class="stat-quad-box">
+          <div class="lbl">Phiên Trước</div>
+          <div class="val" id="hu-prev">—</div>
         </div>
-        <div class="o-thong-so-do">
-          <div class="nhan">Xúc Xắc</div>
-          <div class="vung-xuc-xac" id="hu-dice-box">
-            <div class="vien-xuc-xac" id="hu-d1">-</div>
-            <div class="vien-xuc-xac" id="hu-d2">-</div>
-            <div class="vien-xuc-xac" id="hu-d3">-</div>
+        <div class="stat-quad-box">
+          <div class="lbl">Xúc Xắc</div>
+          <div class="dice-row" id="hu-dice-box">
+            <div class="dice-cube" id="hu-d1">-</div>
+            <div class="dice-cube" id="hu-d2">-</div>
+            <div class="dice-cube" id="hu-d3">-</div>
           </div>
         </div>
-        <div class="o-thong-so-do">
-          <div class="nhan">Tổng Điểm</div>
-          <div class="gia-tri" id="hu-total">—</div>
+        <div class="stat-quad-box">
+          <div class="lbl">Tổng Điểm</div>
+          <div class="val" id="hu-total">—</div>
         </div>
-        <div class="o-thong-so-do">
-          <div class="nhan">Tỉ Lệ 30 Phiên</div>
-          <div class="gia-tri" id="hu-acc" style="color:var(--do-tuoi)">—</div>
+        <div class="stat-quad-box">
+          <div class="lbl">Độ Chuẩn 30P</div>
+          <div class="val" id="hu-acc" style="color:var(--red-main)">—</div>
         </div>
       </div>
 
-      <!-- KHỐI 30 PHIÊN ĐÚNG SAI -->
-      <div class="hop-kiem-dinh-30">
-        <div class="dau-hop-30">
-          <div class="tieu-de-hop-30">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <div class="audit-panel">
+        <div class="audit-header">
+          <div class="audit-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
             KIỂM ĐỊNH 30 PHIÊN THỰC TẾ
           </div>
-          <span class="pill-ti-le-30 mono" id="hu-badge-acc">THẮNG 0/0</span>
+          <span class="pill-winrate mono" id="hu-badge-acc">THẮNG 0/0 (0%)</span>
         </div>
 
-        <div class="thong-ke-30-grid mono">
-          <div class="o-thong-ke-30">
+        <div class="audit-grid mono">
+          <div class="audit-stat-box">
             <div class="lbl">SỐ TAY ĐÚNG</div>
-            <div class="val" id="hu-win-count" style="color:var(--do-tuoi)">0</div>
+            <div class="val" id="hu-win-count" style="color:var(--win-text)">0</div>
           </div>
-          <div class="o-thong-ke-30">
+          <div class="audit-stat-box">
             <div class="lbl">SỐ TAY SAI</div>
-            <div class="val" id="hu-loss-count" style="color:var(--chu-mo)">0</div>
+            <div class="val" id="hu-loss-count" style="color:var(--text-muted)">0</div>
           </div>
-          <div class="o-thong-ke-30">
+          <div class="audit-stat-box">
             <div class="lbl">CHUỖI THẮNG MAX</div>
-            <div class="val" id="hu-streak-max" style="color:#fff">0</div>
+            <div class="val" id="hu-streak-max" style="color:var(--text-primary)">0</div>
           </div>
         </div>
 
-        <!-- DẢI 30 VIÊN THUỐC MINI -->
-        <div class="dai-ribbon-30 mono" id="hu-ribbon"></div>
-
-        <!-- DANH SÁCH CUỘN 30 PHIÊN -->
-        <div class="cuon-danh-sach-30 mono" id="hu-vlog"></div>
+        <div class="ribbon-matrix mono" id="hu-ribbon"></div>
+        <div class="audit-scroll-list mono" id="hu-vlog"></div>
       </div>
     </div>
 
-    <!-- PANEL 2: TÀI XỈU MD5 -->
-    <div class="the-ban" id="panel-md5">
-      <div class="dau-the-ban">
-        <div class="ten-ban">
+    <div class="table-card" id="panel-md5">
+      <div class="table-card-header">
+        <div class="table-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           TÀI XỈU MD5
         </div>
-        <span class="tag-thuat-toan-pill mono" id="md5-algo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+        <span class="pill-algo mono" id="md5-algo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>
           <span id="md5-algo-txt">ĐANG BẮT NHỊP</span>
         </span>
       </div>
 
-      <!-- BUỒNG TÍN HIỆU -->
-      <div class="buong-tin-hieu-do">
-        <div class="chu-tin-hieu mono" id="md5-pred">—</div>
-        <div class="thong-tin-tin-hieu mono">
-          <span class="pill-thong-tin">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
-            PHIÊN: <b id="md5-target" style="color:#fff">—</b>
+      <div class="signal-chamber">
+        <div class="signal-display mono" id="md5-pred">—</div>
+        <div class="signal-tele-row mono">
+          <span class="chip-meta">
+            PHIÊN: <b id="md5-target">—</b>
           </span>
-          <span class="pill-thong-tin">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
-            TIN CẬY: <b id="md5-conf" style="color:#fff">—</b>
+          <span class="chip-meta">
+            TIN CẬY: <b id="md5-conf">—</b>
           </span>
-          <span id="md5-flag" class="pill-canh-bao" style="display:none">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span id="md5-flag" class="chip-warn" style="display:none">
             ĐẢO NHỊP BẢO VỆ
           </span>
         </div>
 
-        <div class="hop-nut-copy">
-          <button class="nut-vien-thuoc-do" style="width:auto;padding:10px 28px;" onclick="copySignal('md5')">
+        <div class="copy-wrapper">
+          <button class="btn-primary-red" style="width:auto;padding:10px 28px;" onclick="copySignal('md5')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            SAO CHÉP LỆNH
+            SAO CHÉP LỆNH PHIÊN
           </button>
         </div>
       </div>
 
-      <!-- DÃY THÔNG SỐ -->
-      <div class="luoi-thong-so mono">
-        <div class="o-thong-so-do">
-          <div class="nhan">Phiên Trước</div>
-          <div class="gia-tri" id="md5-prev">—</div>
+      <div class="stat-quad mono">
+        <div class="stat-quad-box">
+          <div class="lbl">Phiên Trước</div>
+          <div class="val" id="md5-prev">—</div>
         </div>
-        <div class="o-thong-so-do">
-          <div class="nhan">Xúc Xắc</div>
-          <div class="vung-xuc-xac" id="md5-dice-box">
-            <div class="vien-xuc-xac" id="md5-d1">-</div>
-            <div class="vien-xuc-xac" id="md5-d2">-</div>
-            <div class="vien-xuc-xac" id="md5-d3">-</div>
+        <div class="stat-quad-box">
+          <div class="lbl">Xúc Xắc</div>
+          <div class="dice-row" id="md5-dice-box">
+            <div class="dice-cube" id="md5-d1">-</div>
+            <div class="dice-cube" id="md5-d2">-</div>
+            <div class="dice-cube" id="md5-d3">-</div>
           </div>
         </div>
-        <div class="o-thong-so-do">
-          <div class="nhan">Tổng Điểm</div>
-          <div class="gia-tri" id="md5-total">—</div>
+        <div class="stat-quad-box">
+          <div class="lbl">Tổng Điểm</div>
+          <div class="val" id="md5-total">—</div>
         </div>
-        <div class="o-thong-so-do">
-          <div class="nhan">Tỉ Lệ 30 Phiên</div>
-          <div class="gia-tri" id="md5-acc" style="color:var(--do-tuoi)">—</div>
+        <div class="stat-quad-box">
+          <div class="lbl">Độ Chuẩn 30P</div>
+          <div class="val" id="md5-acc" style="color:var(--red-main)">—</div>
         </div>
       </div>
 
-      <!-- KHỐI 30 PHIÊN ĐÚNG SAI -->
-      <div class="hop-kiem-dinh-30">
-        <div class="dau-hop-30">
-          <div class="tieu-de-hop-30">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <div class="audit-panel">
+        <div class="audit-header">
+          <div class="audit-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
             KIỂM ĐỊNH 30 PHIÊN THỰC TẾ
           </div>
-          <span class="pill-ti-le-30 mono" id="md5-badge-acc">THẮNG 0/0</span>
+          <span class="pill-winrate mono" id="md5-badge-acc">THẮNG 0/0 (0%)</span>
         </div>
 
-        <div class="thong-ke-30-grid mono">
-          <div class="o-thong-ke-30">
+        <div class="audit-grid mono">
+          <div class="audit-stat-box">
             <div class="lbl">SỐ TAY ĐÚNG</div>
-            <div class="val" id="md5-win-count" style="color:var(--do-tuoi)">0</div>
+            <div class="val" id="md5-win-count" style="color:var(--win-text)">0</div>
           </div>
-          <div class="o-thong-ke-30">
+          <div class="audit-stat-box">
             <div class="lbl">SỐ TAY SAI</div>
-            <div class="val" id="md5-loss-count" style="color:var(--chu-mo)">0</div>
+            <div class="val" id="md5-loss-count" style="color:var(--text-muted)">0</div>
           </div>
-          <div class="o-thong-ke-30">
+          <div class="audit-stat-box">
             <div class="lbl">CHUỖI THẮNG MAX</div>
-            <div class="val" id="md5-streak-max" style="color:#fff">0</div>
+            <div class="val" id="md5-streak-max" style="color:var(--text-primary)">0</div>
           </div>
         </div>
 
-        <!-- DẢI 30 VIÊN THUỐC MINI -->
-        <div class="dai-ribbon-30 mono" id="md5-ribbon"></div>
-
-        <!-- DANH SÁCH CUỘN 30 PHIÊN -->
-        <div class="cuon-danh-sach-30 mono" id="md5-vlog"></div>
+        <div class="ribbon-matrix mono" id="md5-ribbon"></div>
+        <div class="audit-scroll-list mono" id="md5-vlog"></div>
       </div>
     </div>
-
   </div>
 
-  <!-- FOOTER -->
   <footer class="mono">
-    <div style="font-weight:900;color:var(--do-chinh)">BẢN QUYỀN CHÍNH THỨC THUỘC VỀ PHẠM ANH KHÔI</div>
-    <div>HỖ TRỢ TRỰC TIẾP QUA TELEGRAM: <a href="https://t.me/anhkhoi_xabc" target="_blank">@anhkhoi_xabc</a></div>
+    <div>HỆ PHÂN TÍCH CẦU • BẢN QUYỀN THUỘC VỀ PHẠM ANH KHÔI</div>
+    <div>HỖ TRỢ KỸ THUẬT: <a href="https://t.me/anhkhoi_xabc" target="_blank">@anhkhoi_xabc</a></div>
   </footer>
 </div>
 
@@ -668,14 +604,13 @@ let countdownSec = 3;
 let lastSignalHu = "";
 let lastSignalMd5 = "";
 
-// XÓA SẠCH MỌI DỮ LIỆU ĐĂNG NHẬP CŨ TỪ PHIÊN TRƯỚC
-try {
-  localStorage.clear();
-  sessionStorage.clear();
-} catch(e) {}
+function formatTokenLabel(tok) {
+  if (!tok) return "—";
+  const s = String(tok).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  return (s === "tai" || s === "t") ? "TÀI" : "XỈU";
+}
 
-// ÂM THANH BÁO TÍN HIỆU
-function playAlert() {
+function playAudioAlert() {
   if (!soundEnabled) return;
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -685,22 +620,20 @@ function playAlert() {
     gain.connect(audioCtx.destination);
     osc.type = "sine";
     osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(1400, audioCtx.currentTime + 0.14);
-    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
+    osc.frequency.exponentialRampToValueAtTime(1320, audioCtx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
     osc.start();
-    osc.stop(audioCtx.currentTime + 0.22);
-  } catch (e) {}
+    osc.stop(audioCtx.currentTime + 0.2);
+  } catch(e) {}
 }
 
-// BẬT / TẮT ÂM THANH
 $("btn-sound").onclick = () => {
   soundEnabled = !soundEnabled;
   $("txt-sound").textContent = soundEnabled ? "ÂM BÁO: BẬT" : "ÂM BÁO: TẮT";
-  showToast(soundEnabled ? "Đã bật âm báo tín hiệu" : "Đã tắt âm báo");
+  showToast(soundEnabled ? "Đã bật âm báo âm thanh" : "Đã tắt âm báo");
 };
 
-// TOAST THÔNG BÁO
 function showToast(msg) {
   const t = $("toast");
   $("toast-txt").textContent = msg;
@@ -708,33 +641,32 @@ function showToast(msg) {
   setTimeout(() => { t.style.display = "none"; }, 2500);
 }
 
-// SAO CHÉP LỆNH DẠNG VIÊN THUỐC
 function copySignal(game) {
   const p = window[`lastPred_${game}`];
   if (!p) {
-    showToast("Chưa có tín hiệu để sao chép!");
+    showToast("Chưa có dữ liệu phiên để sao chép!");
     return;
   }
-  const text = `🎯 [PHẠM ANH KHÔI - BẢN QUYỀN CHÍNH THỨC]
-🎲 BÀN: ${game === "hu" ? "TÀI XỈU TRUYỀN THỐNG" : "TÀI XỈU MD5"}
-👉 PHIÊN: #${p.session}
-🔥 DỰ ĐOÁN: ${p.pred.toUpperCase()}
+  const label = formatTokenLabel(p.pred);
+  const text = `🎯 [PHẠM ANH KHÔI - QUANTUM SUITE]
+🎲 BÀN CƯỢC: ${game === "hu" ? "TÀI XỈU TRUYỀN THỐNG" : "TÀI XỈU MD5"}
+👉 PHIÊN TIẾP THEO: #${p.session}
+🔥 DỰ ĐOÁN: ${label}
 ⚡ ĐỘ TIN CẬY: ${p.conf}%
 📊 CHIẾN THUẬT: ${p.src}
-🛡️ ĐẢO NHỊP: ${p.reverse ? "CÓ" : "CHUẨN"}
+🛡️ ĐẢO NHỊP: ${p.reverse ? "KÍCH HOẠT" : "CHUẨN"}
 📱 TELEGRAM: @anhkhoi_xabc`;
 
   navigator.clipboard.writeText(text).then(() => {
     showToast(`Đã sao chép lệnh phiên #${p.session}`);
   }).catch(() => {
-    showToast("Không thể sao chép tự động!");
+    showToast("Không thể sao chép lệnh tự động!");
   });
 }
 
-// CHUYỂN TABS
-document.querySelectorAll(".tab-pill").forEach(btn => {
+document.querySelectorAll(".tab-btn").forEach(btn => {
   btn.onclick = () => {
-    document.querySelectorAll(".tab-pill").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     const t = btn.dataset.tab;
     if (t === "all") {
@@ -750,19 +682,17 @@ document.querySelectorAll(".tab-pill").forEach(btn => {
   };
 });
 
-// KHÓA HỆ THỐNG / ĐĂNG XUẤT
 $("btn-lock").onclick = () => {
   activeKey = "";
   if (syncTimer) clearInterval(syncTimer);
   $("giao-dien-chinh").style.setProperty("display", "none", "important");
   $("man-hinh-khoa").style.display = "flex";
   $("input-key").value = "";
-  $("bao-loi-khoa").style.display = "none";
-  showToast("Đã khóa hệ thống thành công");
+  $("auth-err").style.display = "none";
+  showToast("Hệ thống đã được khóa an toàn");
 };
 
-// RENDER DỮ LIỆU
-function renderGame(k, d) {
+function renderBoard(k, d) {
   if (!d) return;
   const p = d.prediction;
   const l = d.last;
@@ -770,9 +700,8 @@ function renderGame(k, d) {
   window[`lastPred_${k}`] = p;
 
   if (p) {
-    const el = $(`${k}-pred`);
-    const isTai = p.pred === "tài" || p.pred === "tai";
-    el.textContent = isTai ? "TÀI" : "XỈU";
+    const label = formatTokenLabel(p.pred);
+    $(`${k}-pred`).textContent = label;
     $(`${k}-target`).textContent = `#${p.session}`;
     $(`${k}-conf`).textContent = `${p.conf}%`;
     $(`${k}-algo-txt`).textContent = p.src || "ĐỊNH LƯỢNG";
@@ -783,10 +712,10 @@ function renderGame(k, d) {
     const sigKey = `${p.session}_${p.pred}`;
     if (k === "hu" && lastSignalHu !== sigKey) {
       lastSignalHu = sigKey;
-      playAlert();
+      playAudioAlert();
     } else if (k === "md5" && lastSignalMd5 !== sigKey) {
       lastSignalMd5 = sigKey;
-      playAlert();
+      playAudioAlert();
     }
   }
 
@@ -797,7 +726,7 @@ function renderGame(k, d) {
       $(`${k}-d2`).textContent = l.dice[1] || 0;
       $(`${k}-d3`).textContent = l.dice[2] || 0;
     }
-    $(`${k}-total`).textContent = `${l.total} (${l.result.toUpperCase()})`;
+    $(`${k}-total`).textContent = `${l.total} (${formatTokenLabel(l.result)})`;
   }
 
   $(`${k}-acc`).textContent = d.acc30 || "0%";
@@ -806,33 +735,30 @@ function renderGame(k, d) {
   $(`${k}-loss-count`).textContent = d.lossCount || 0;
   $(`${k}-streak-max`).textContent = d.maxWinStreak || 0;
 
-  // DẢI 30 VIÊN THUỐC MINI
   const ribbon = $(`${k}-ribbon`);
   const outcomes = (d.outcomes || []).slice(0, 30);
   ribbon.innerHTML = outcomes.map(o => `
-    <div class="mini-pill ${o.ok ? 'w' : 'l'}" title="Phiên #${o.session}: ${o.ok ? 'ĐÚNG' : 'SAI'} (${o.pred.toUpperCase()} → ${o.actual.toUpperCase()})">
+    <div class="dot-check ${o.ok ? 'w' : 'l'}" title="Phiên #${o.session}: ${o.ok ? 'ĐÚNG' : 'SAI'} (${formatTokenLabel(o.pred)} → ${formatTokenLabel(o.actual)})">
       ${o.ok ? '✓' : '✗'}
     </div>
   `).join("");
 
-  // DANH SÁCH CUỘN 30 PHIÊN
   const vlog = $(`${k}-vlog`);
   vlog.innerHTML = outcomes.map(o => `
-    <div class="hang-kiem-dinh">
-      <span class="pill-ket-qua ${o.ok ? 'w' : 'l'}">
+    <div class="audit-row">
+      <span class="pill-result-tag ${o.ok ? 'w' : 'l'}">
         ${o.ok ? '✓ ĐÚNG' : '✗ SAI'}
       </span>
       <span style="font-weight:700">#${o.session}</span>
-      <span style="margin:0 14px;font-weight:800;color:var(--do-tuoi)">
-        ${o.pred.toUpperCase()} → ${o.actual.toUpperCase()}
+      <span style="margin:0 12px;font-weight:800;color:var(--red-main)">
+        ${formatTokenLabel(o.pred)} → ${formatTokenLabel(o.actual)}
       </span>
-      <span style="color:var(--chu-mo);margin-left:auto;font-size:0.75rem">${o.src || ''}</span>
+      <span style="color:var(--text-muted);margin-left:auto;font-size:0.75rem">${o.src || ''}</span>
     </div>
-  `).join("") || '<div class="hang-kiem-dinh" style="color:var(--chu-mo)">Đang đồng bộ dữ liệu...</div>';
+  `).join("") || '<div class="audit-row" style="color:var(--text-muted)">Đang nạp dữ liệu kiểm định thực tế...</div>';
 }
 
-// ĐỒNG BỘ DỮ LIỆU TỪ SERVER
-async function syncData() {
+async function syncDashboard() {
   if (!activeKey) return;
   const t0 = performance.now();
   try {
@@ -841,30 +767,28 @@ async function syncData() {
     $("txt-ping").textContent = `${ping}ms`;
 
     if (!res.ok) {
-      // Key bị sai hoặc hết hạn -> Khóa lại ngay
       $("btn-lock").click();
       return;
     }
 
     const data = await res.json();
-    $("txt-status").textContent = "KẾT NỐI ỔN ĐỊNH";
-    $("txt-status").style.color = "var(--do-chinh)";
+    $("txt-status").textContent = "KẾT NỐI TRỰC TIẾP";
+    $("txt-status").style.color = "var(--text-primary)";
 
-    renderGame("hu", data.hu);
-    renderGame("md5", data.md5);
+    renderBoard("hu", data.hu);
+    renderBoard("md5", data.md5);
   } catch (e) {
     $("txt-status").textContent = "MẤT TÍN HIỆU";
-    $("txt-status").style.color = "var(--chu-mo)";
+    $("txt-status").style.color = "var(--text-muted)";
   }
 }
 
-// XỬ LÝ MỞ KHÓA BẮT BUỘC MẬT KHẨU
-async function attemptUnlock() {
+async function handleUnlock() {
   const enteredKey = $("input-key").value.trim();
-  const errBox = $("bao-loi-khoa");
+  const errBox = $("auth-err");
 
   if (!enteredKey) {
-    errBox.textContent = "BẠN CHƯA NHẬP MẬT KHẨU BẢN QUYỀN!";
+    errBox.textContent = "VUI LÒNG NHẬP MÃ BẢN QUYỀN!";
     errBox.style.display = "block";
     return;
   }
@@ -874,40 +798,39 @@ async function attemptUnlock() {
     const data = await res.json();
 
     if (!res.ok) {
-      errBox.textContent = data.error || "MẬT KHẨU BẢN QUYỀN KHÔNG CHÍNH XÁC!";
+      errBox.textContent = data.error || "MÃ BẢN QUYỀN KHÔNG CHÍNH XÁC!";
       errBox.style.display = "block";
       return;
     }
 
-    // Mở khóa thành công
     activeKey = enteredKey;
     errBox.style.display = "none";
     $("man-hinh-khoa").style.display = "none";
     $("giao-dien-chinh").style.setProperty("display", "block", "important");
 
-    renderGame("hu", data.hu);
-    renderGame("md5", data.md5);
+    renderBoard("hu", data.hu);
+    renderBoard("md5", data.md5);
 
     if (syncTimer) clearInterval(syncTimer);
     syncTimer = setInterval(() => {
       countdownSec--;
       if (countdownSec <= 0) {
         countdownSec = 3;
-        syncData();
+        syncDashboard();
       }
       $("txt-countdown").textContent = `${countdownSec}s`;
     }, 1000);
 
-    showToast("Mở khóa hệ thống thành công!");
+    showToast("Mở khóa hệ thống thành công");
   } catch (e) {
     errBox.textContent = "KHÔNG THỂ KẾT NỐI ĐẾN MÁY CHỦ!";
     errBox.style.display = "block";
   }
 }
 
-$("btn-unlock").onclick = attemptUnlock;
-$("input-key").onkeydown = e => { if (e.key === "Enter") attemptUnlock(); };
-$("btn-sync").onclick = () => { countdownSec = 3; syncData(); };
+$("btn-unlock").onclick = handleUnlock;
+$("input-key").onkeydown = e => { if (e.key === "Enter") handleUnlock(); };
+$("btn-sync").onclick = () => { countdownSec = 3; syncDashboard(); };
 </script>
 </body>
 </html>
